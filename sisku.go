@@ -10,44 +10,140 @@ import (
 	"strings"
 )
 
-type Item struct {
-	Id       int                    `json:"id"`
-	Label    string                 `json:"label"`
-	Type     string                 `json:"type"`
-	Original map[string]interface{} `json:"-"`
+func noFieldErr(field string, m interface{}) error {
+	return errors.New(fmt.Sprint("no `", field, "` field\n", m))
 }
 
-func ParseItem(b []byte) (item Item, err error) {
-	if err = json.Unmarshal(b, &item); err == nil {
-		err = json.Unmarshal(b, &item.Original)
+type ItemType = int
+
+const (
+	Vertex = iota
+	Edge
+)
+
+type IsItem interface {
+	Id() int
+	Label() string
+	Type() ItemType
+}
+
+type Item struct {
+	id       int
+	label    string
+	typ      ItemType
+	original map[string]interface{}
+}
+
+func (i *Item) Id() int {
+	return i.id
+}
+func (i *Item) Label() string {
+	return i.label
+}
+func (i *Item) Type() ItemType {
+	return i.typ
+}
+
+func (i *Item) UnmarshalJSON(b []byte) error {
+	var m map[string]interface{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		return err
 	}
-	return
+	if id, ok := m["id"].(float64); ok {
+		i.id = int(id)
+	} else {
+		return noFieldErr("id", m)
+	}
+	if label, ok := m["label"].(string); ok {
+		i.label = label
+	} else {
+		return noFieldErr("label", m)
+	}
+	if typ, ok := m["type"].(string); ok {
+		if typ == "vertex" {
+			i.typ = Vertex
+		} else {
+			i.typ = Edge
+		}
+	} else {
+		return noFieldErr("type", m)
+	}
+	i.original = m
+	return nil
 }
 
 type Hover struct {
+	id int
+	// Label = "hoverResult"
+	// Type = "vertex"
 	Contents string
-	Range    *Range
+	rng      *Range
 }
 
-func MapToHover(m map[string]interface{}) (hover Hover) {
-	if m["contents"] != nil {
-		hover.Contents = contentsString(m["contents"])
+func (h *Hover) Id() int {
+	return h.id
+}
+func (h *Hover) Label() string {
+	return "hoverResult"
+}
+func (h *Hover) Type() ItemType {
+	return Vertex
+}
+
+func (h *Hover) UnmarshalJSON(b []byte) error {
+	var m map[string]interface{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		return err
 	}
-	if m["range"] != nil {
+
+	if id, ok := m["id"].(float64); !ok {
+		return noFieldErr("id", m)
+	} else {
+		h.id = int(id)
+	}
+
+	if label, ok := m["label"].(string); !ok {
+		return noFieldErr("label", m)
+	} else if label != "hoverResult" {
+		return errors.New(fmt.Sprint("`label` field must be \"hoverResult\"\n", m))
+	}
+
+	if typ, ok := m["type"].(string); !ok {
+		return noFieldErr("type", m)
+	} else if typ != "vertex" {
+		return errors.New(fmt.Sprint("`type` field must be \"vertex\"\n", m))
+	}
+
+	r, ok := m["result"].(map[string]interface{})
+	if !ok {
+		return noFieldErr("result", m)
+	}
+	if r["contents"] == nil {
+		return noFieldErr("contents", r)
+	} else {
+		h.Contents = contentsString(r["contents"])
+	}
+	if r["range"] != nil {
 		rng, err := MapToRange(m["range"].(map[string]interface{}))
 		if err != nil {
-			hover.Range = nil
+			return err
 		} else {
-			hover.Range = &rng
+			h.rng = &rng
 		}
 	}
-	return
+	return nil
 }
 
 func contentsString(c interface{}) string {
 	switch contents := c.(type) {
+	// simple string
 	case string:
 		return contents
+	// {"language": lang, "value": str}
+	// as same as
+	//   ```lang
+	//   str
+	//   ```
 	case map[string]interface{}:
 		if contents["language"] != nil {
 			return "```" + contents["language"].(string) + "\n" + contents["value"].(string) + "\n```"
@@ -56,8 +152,10 @@ func contentsString(c interface{}) string {
 			return contents["value"].(string)
 		}
 		return fmt.Sprint(contents)
+	// string list
 	case []string:
 		return strings.Join(contents, "\n")
+	// string and/or {"language": lang, "value": str} list
 	case []interface{}:
 		var result string
 		for _, contents := range contents {
@@ -83,11 +181,11 @@ type Range struct {
 
 func MapToRange(m map[string]interface{}) (rng Range, err error) {
 	if m["start"] == nil {
-		err = errors.New("`start` is not found")
+		err = noFieldErr("start", m)
 		return
 	}
 	if m["end"] == nil {
-		err = errors.New("`end` is not found")
+		err = noFieldErr("end", m)
 		return
 	}
 	rng.Start, err = MapToPosition(m["start"].(map[string]interface{}))
@@ -105,11 +203,11 @@ type Position struct {
 
 func MapToPosition(m map[string]interface{}) (pos Position, err error) {
 	if m["line"] == nil {
-		err = errors.New("`line` is not found")
+		err = noFieldErr("line", m)
 		return
 	}
 	if m["character"] == nil {
-		err = errors.New("`character` is not found")
+		err = noFieldErr("character", m)
 		return
 	}
 	pos = Position{Line: m["line"].(int), Character: m["character"].(int)}
@@ -129,26 +227,28 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 1024*1024)
+
 	var items []Item
+	var hovers []Hover
 	for scanner.Scan() {
-		item, err := ParseItem(scanner.Bytes())
-		if err != nil {
+		var item Item
+		var hover Hover
+		if err := json.Unmarshal(scanner.Bytes(), &item); err != nil {
 			log.Fatal(err, scanner.Text())
 		}
 		items = append(items, item)
+		if err := json.Unmarshal(scanner.Bytes(), &hover); err != nil {
+			if item.label == "hoverResult" {
+				log.Fatal(err)
+			}
+		} else {
+			hovers = append(hovers, hover)
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(os.Stderr, "reading standard input:", err)
 	}
 
-	// Collect hover infomations
-	var hovers []Hover
-	for _, item := range items {
-		if item.Label == "hoverResult" {
-			hover := MapToHover(item.Original["result"].(map[string]interface{}))
-			hovers = append(hovers, hover)
-		}
-	}
 	for i, hover := range hovers {
 		fmt.Println("<!-- Entry ", i, "-->")
 		fmt.Println(hover.Contents)
