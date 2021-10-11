@@ -10,8 +10,12 @@ import (
 	"strings"
 )
 
-func noFieldErr(field string, m interface{}) error {
-	return errors.New(fmt.Sprint("no `", field, "` field\n", m))
+// noFieldErr returns an error for a field that is not present in a map.
+func noFieldErr(field string, m map[string]interface{}) error {
+	if m[field] == nil {
+		return errors.New(fmt.Sprint("no `", field, "` field\n", m))
+	}
+	return nil
 }
 
 type ItemType = int
@@ -134,6 +138,7 @@ func (h *Hover) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// contentsString returns the contents of a hover result as a string.
 func contentsString(c interface{}) string {
 	switch contents := c.(type) {
 	// simple string
@@ -179,6 +184,7 @@ type Range struct {
 	End   Position
 }
 
+// MapToRange converts a map as [start: s, end: e] to a Range{Start: s, End: e}.
 func MapToRange(m map[string]interface{}) (rng Range, err error) {
 	if m["start"] == nil {
 		err = noFieldErr("start", m)
@@ -201,6 +207,7 @@ type Position struct {
 	Character int
 }
 
+// MapToPosition converts a map as [line: l, character: c] to a Position{Line: l, Character: c}.
 func MapToPosition(m map[string]interface{}) (pos Position, err error) {
 	if m["line"] == nil {
 		err = noFieldErr("line", m)
@@ -228,7 +235,6 @@ func main() {
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 1024*1024)
 
-	var items []Item
 	var hovers []Hover
 	for scanner.Scan() {
 		var item Item
@@ -236,7 +242,6 @@ func main() {
 		if err := json.Unmarshal(scanner.Bytes(), &item); err != nil {
 			log.Fatal(err, scanner.Text())
 		}
-		items = append(items, item)
 		if err := json.Unmarshal(scanner.Bytes(), &hover); err != nil {
 			if item.label == "hoverResult" {
 				log.Fatal(err)
