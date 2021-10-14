@@ -1,4 +1,4 @@
-package sisku
+package lsif
 
 import (
 	"encoding/json"
@@ -103,6 +103,15 @@ func (e *Edge) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
+}
+
+type Index struct {
+	Edges    []Edge
+	Vertexes []Element
+}
+
+func (i Index) GetVertex(id int) Element {
+	return i.Vertexes[id-1]
 }
 
 type HoverResult struct {
