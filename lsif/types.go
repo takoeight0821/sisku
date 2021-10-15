@@ -107,11 +107,11 @@ func (e *Edge) UnmarshalJSON(b []byte) error {
 
 type Index struct {
 	Edges    []Edge
-	Vertexes []Element
+	Elements []Element
 }
 
-func (i Index) GetVertex(id int) Element {
-	return i.Vertexes[id-1]
+func (i Index) GetElement(id int) Element {
+	return i.Elements[id-1]
 }
 
 type HoverResult struct {

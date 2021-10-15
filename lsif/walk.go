@@ -3,7 +3,7 @@ package lsif
 // look up the vertex with the given label
 func (i Index) Lookup(l string) []Element {
 	var result []Element
-	for _, v := range i.Vertexes {
+	for _, v := range i.Elements {
 		if v.Label == l {
 			result = append(result, v)
 		}
@@ -17,7 +17,7 @@ func (i Index) Back(v Element) []Element {
 	for _, edge := range i.Edges {
 		for _, inV := range edge.InVs {
 			if inV == v.Id {
-				result = append(result, i.GetVertex(edge.OutV))
+				result = append(result, i.GetElement(edge.OutV))
 			}
 		}
 	}
@@ -30,7 +30,7 @@ func (i Index) Forward(v Element) []Element {
 	for _, edge := range i.Edges {
 		if edge.OutV == v.Id {
 			for _, inV := range edge.InVs {
-				result = append(result, i.GetVertex(inV))
+				result = append(result, i.GetElement(inV))
 			}
 		}
 	}
@@ -40,7 +40,7 @@ func (i Index) Forward(v Element) []Element {
 // all vertexes that are reachable from the given "resultSet" or "range"
 func (i Index) Results(from Element) []Element {
 	var result []Element
-	for _, v := range i.Vertexes {
+	for _, v := range i.Elements {
 		if v.Id == from.Id {
 			for _, next := range i.Forward(v) {
 				if next.Label == "resultSet" {
