@@ -1,6 +1,18 @@
 package lsif
 
-func Back(v Element, i Index) []Element {
+// look up the vertex with the given label
+func (i Index) Lookup(l string) []Element {
+	var result []Element
+	for _, v := range i.Vertexes {
+		if v.Label == l {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// all vertexes that are reachable to the given vertex
+func (i Index) Back(v Element) []Element {
 	var result []Element
 	for _, edge := range i.Edges {
 		for _, inV := range edge.InVs {
@@ -12,12 +24,31 @@ func Back(v Element, i Index) []Element {
 	return result
 }
 
-func Forward(v Element, i Index) []Element {
+// all vertexes that are reachable from the given vertex
+func (i Index) Forward(v Element) []Element {
 	var result []Element
 	for _, edge := range i.Edges {
 		if edge.OutV == v.Id {
 			for _, inV := range edge.InVs {
 				result = append(result, i.GetVertex(inV))
+			}
+		}
+	}
+	return result
+}
+
+// all vertexes that are reachable from the given "resultSet" or "range"
+func (i Index) Results(from Element) []Element {
+	var result []Element
+	for _, v := range i.Vertexes {
+		if v.Id == from.Id {
+			for _, next := range i.Forward(v) {
+				if next.Label == "resultSet" {
+					result = append(result, i.Forward(next)...)
+				} else {
+					result = append(result, next)
+
+				}
 			}
 		}
 	}

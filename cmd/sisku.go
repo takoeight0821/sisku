@@ -63,28 +63,32 @@ func main() {
 
 	index := lsif.Index{Edges: edges, Vertexes: elems}
 
-	for _, e := range edges {
-		fmt.Println(e.OutV, e.InVs)
-	}
-
 	for i, h := range hovers {
 		if *query == "" {
 			fmt.Println("<!-- Entry ", i, "-->")
 			fmt.Println(h)
+			v := index.GetVertex(h.Id)
+			for _, p := range index.Back(v) {
+				for _, r := range index.Results(p) {
+					if r.Label == "definitionResult" {
+						fmt.Println(index.Forward(r))
+					}
+					if r.Label == "moniker" {
+						fmt.Println(r)
+					}
+				}
+			}
 		} else if r, err := regexp.Compile(*query); err == nil && h.IsMatch(*r) {
 			fmt.Println("<!-- Entry ", i, "-->")
 			h.PrintHead(10)
-			for _, p := range lsif.Back(index.GetVertex(h.Id), index) {
-				fmt.Println("<!-- Parent -->")
-				fmt.Println(p.Id, p.Label, p.Type)
-				fmt.Println("<!-- Children -->")
-				for _, c := range lsif.Forward(p, index) {
-					fmt.Println(c.Id, c.Label, c.Type)
-					if c.Label == "resultSet" {
-						for _, n := range lsif.Forward(c, index) {
-							fmt.Println(n.Id, n.Label, n.Type)
-						}
-						fmt.Println("End of resultSet")
+			v := index.GetVertex(h.Id)
+			for _, p := range index.Back(v) {
+				for _, r := range index.Results(p) {
+					if r.Label == "definitionResult" {
+						fmt.Println(index.Forward(r))
+					}
+					if r.Label == "moniker" {
+						fmt.Println(r)
 					}
 				}
 			}
