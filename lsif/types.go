@@ -111,7 +111,12 @@ type Index struct {
 }
 
 func (i Index) GetElement(id int) Element {
-	return i.Elements[id-1]
+	for _, e := range i.Elements {
+		if e.Id == id {
+			return e
+		}
+	}
+	panic("element not found")
 }
 
 type HoverResult struct {

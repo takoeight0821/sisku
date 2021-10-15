@@ -41,6 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Loaded index")
 
 	http.HandleFunc("/search/", searchHandler(index, hovers))
 	log.Fatal(http.ListenAndServe(":8080", nil))
