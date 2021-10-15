@@ -85,11 +85,13 @@ func main() {
 			for _, p := range index.Back(v) {
 				for _, r := range index.Results(p) {
 					if r.Label == "definitionResult" {
-						fmt.Println(index.Forward(r))
+						fmt.Println("definitionResult", index.Forward(r))
+					} else if r.Label == "moniker" {
+						fmt.Println("moniker", r)
+					} else {
+						fmt.Println("other", r.Id, r.Label)
 					}
-					if r.Label == "moniker" {
-						fmt.Println(r)
-					}
+
 				}
 			}
 		}
