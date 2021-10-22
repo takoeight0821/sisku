@@ -107,16 +107,22 @@ func (e *Edge) UnmarshalJSON(b []byte) error {
 
 type Index struct {
 	Edges    []Edge
-	Elements []Element
+	Elements map[int]Element
+}
+
+func NewIndex(edges []Edge, elements []Element) Index {
+	elems := make(map[int]Element)
+	for _, e := range elements {
+		elems[e.Id] = e
+	}
+	return Index{
+		Edges:    edges,
+		Elements: elems,
+	}
 }
 
 func (i Index) GetElement(id int) Element {
-	for _, e := range i.Elements {
-		if e.Id == id {
-			return e
-		}
-	}
-	panic("element not found")
+	return i.Elements[id]
 }
 
 type HoverResult struct {
@@ -149,9 +155,8 @@ func (h *HoverResult) UnmarshalJSON(b []byte) error {
 		rng, err := mapToRange(m["range"].(map[string]interface{}))
 		if err != nil {
 			return err
-		} else {
-			h.rng = &rng
 		}
+		h.rng = &rng
 	}
 	return nil
 }

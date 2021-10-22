@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func Load(path string) (index Index, hovers []HoverResult, err error) {
+func Load(path string) (_ Index, hovers []HoverResult, err error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return
@@ -17,12 +17,15 @@ func Load(path string) (index Index, hovers []HoverResult, err error) {
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 1024*1024)
 
+	elements := make([]Element, 0, 64)
+	edges := make([]Edge, 0, 64)
+
 	for scanner.Scan() {
 		var elem Element
 		if err = json.Unmarshal(scanner.Bytes(), &elem); err != nil {
 			return
 		} else {
-			index.Elements = append(index.Elements, elem)
+			elements = append(elements, elem)
 		}
 		var hover HoverResult
 		if err = json.Unmarshal(scanner.Bytes(), &hover); err != nil {
@@ -38,11 +41,11 @@ func Load(path string) (index Index, hovers []HoverResult, err error) {
 				return
 			}
 		} else {
-			index.Edges = append(index.Edges, edge)
+			edges = append(edges, edge)
 		}
 	}
 	if err = scanner.Err(); err != nil {
 		return
 	}
-	return index, hovers, nil
+	return NewIndex(edges, elements), hovers, nil
 }

@@ -54,11 +54,13 @@ func (i Index) Search(hovers []HoverResult, query regexp.Regexp) (results []Sear
 			result.Hover = h
 			for _, p := range i.Back(i.GetElement(h.Id)) {
 				for _, r := range i.Results(p) {
-					if r.Label == "definitionResult" {
+					switch r.Label {
+					case "definitionResult":
 						result.Definition = r
-					} else if r.Label == "moniker" {
+					case "moniker":
 						result.Moniker = r
-					} else {
+					case "hoverResult":
+					default:
 						result.Others = append(result.Others, r)
 					}
 				}

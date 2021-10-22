@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -24,9 +25,10 @@ func main() {
 	if r, err := regexp.Compile(*query); err != nil {
 		log.Fatal(err)
 	} else {
-		for _, r := range index.Search(hovers, *r) {
-			fmt.Println("~~~~~~~~")
-			fmt.Print(r.Render(index))
+		json, err := json.MarshalIndent(index.Search(hovers, *r), "", "  ")
+		if err != nil {
+			log.Fatal(err)
 		}
+		fmt.Println(string(json))
 	}
 }
