@@ -26,7 +26,7 @@ func (i Index) Back(v Element) []Element {
 
 // all vertexes that are reachable from the given vertex
 func (i Index) Forward(v Element) []Element {
-	var result []Element
+	result := make([]Element, 0)
 	for _, edge := range i.Edges {
 		if edge.OutV == v.Id {
 			for _, inV := range edge.InVs {

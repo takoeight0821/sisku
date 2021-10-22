@@ -18,6 +18,7 @@ type ServerError struct {
 func searchHandler(index lsif.Index, hovers []lsif.HoverResult) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		query := r.URL.Query()
 		if query["q"] == nil {
 			sErr, err := json.Marshal(ServerError{Message: "query parameter is required"})
@@ -25,6 +26,7 @@ func searchHandler(index lsif.Index, hovers []lsif.HoverResult) func(http.Respon
 				log.Fatal(err)
 			}
 			http.Error(w, string(sErr), http.StatusBadRequest)
+			log.Println(string(sErr))
 			return
 		}
 		reg, err := regexp.Compile(query.Get("q"))
@@ -34,18 +36,22 @@ func searchHandler(index lsif.Index, hovers []lsif.HoverResult) func(http.Respon
 				log.Fatal(err)
 			}
 			http.Error(w, string(sErr), http.StatusBadRequest)
+			log.Println(string(sErr))
 			return
 		}
-		result, err := json.MarshalIndent(index.Search(hovers, *reg), "", "  ")
+		result, err := json.Marshal(index.Search(hovers, *reg))
 		if err != nil {
 			sErr, err := json.Marshal(ServerError{Message: err.Error()})
 			if err != nil {
 				log.Fatal(err)
 			}
 			http.Error(w, string(sErr), http.StatusInternalServerError)
+			log.Println(string(sErr))
 			return
 		}
 		fmt.Fprintln(w, string(result))
+		log.Printf("hit: %s\n", query.Get("q"))
+		log.Printf("%s\n", string(result))
 	}
 }
 
