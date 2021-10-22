@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import ReactMarkdown from 'react-markdown';
+import Stack from 'react-bootstrap/Stack';
+import Form from 'react-bootstrap/Form';
+import Card from 'react-bootstrap/Card';
 
 type SearchResult = {
   Hover: HoverResult;
@@ -34,32 +37,44 @@ type Position = {
 }
 
 const SearchBar = ({ onSearchTermChange }: { onSearchTermChange: (searchTerm: string) => void }) => {
-  return <input type="text" placeholder="Search" onChange={event => onSearchTermChange(event.target.value)} />
+  return <Form>
+    <Form.Control type="text" placeholder="Search" onChange={(e) => onSearchTermChange(e.target.value)} /> 
+  </Form>
 };
 
 const SearchResults = ({ searchResults }: { searchResults: SearchResult[] }) => {
   return <div>
-    {searchResults.map((searchResult, i) => <Entry index={i} searchResult={searchResult} />)}
+    {searchResults.map((searchResult, i) =>
+      <Entry index={i} searchResult={searchResult} />
+    )}
   </div>
 };
 
 const Entry = ({ index, searchResult }: { index: number, searchResult: SearchResult }) => {
-  return <div>
+  return <Card className="border" body>
     <h2>Result {index}</h2>
     <h3>Hovers</h3>
-    <ReactMarkdown children={searchResult.Hover.Contents} />
+    <Card className="bg-light" body>
+      <ReactMarkdown children={searchResult.Hover.Contents} />
+    </Card>
     <h3>Definition</h3>
     <p>{JSON.stringify(searchResult.Definition.Payload)}</p>
     <ul>
-      {searchResult.DefRanges.map((defRange, i) => <li key={i}>{JSON.stringify(defRange.Payload)}</li>)}
+      {searchResult.DefRanges.map((defRange, i) =>
+        <li key={i}>
+          <div className="text-break">{JSON.stringify(defRange.Payload)}</div>
+        </li>
+      )}
     </ul>
     <h3>Moniker</h3>
-    <p>{JSON.stringify(searchResult.Moniker.Payload)}</p>
+    <p className="text-break">{JSON.stringify(searchResult.Moniker.Payload)}</p>
     <h3>Others</h3>
     <ul>
-      {searchResult.Others.map((other, i) => <li key={i}>{JSON.stringify(other.Payload)}</li>)}
+      {searchResult.Others.map((other, i) => <li key={i}>
+        <div className="text-break">{JSON.stringify(other.Payload)}</div>
+      </li>)}
     </ul>
-  </div>
+  </Card>
 };
 
 function App() {
@@ -80,11 +95,11 @@ function App() {
   }, [searchTerm]);
 
   return (
-    <div>
+    <Stack className="p-3" gap={4}>
       <SearchBar onSearchTermChange={setSearchTerm} />
       <p>{searchTerm.length > 0 ? `Searching for ${searchTerm}` : 'Please enter a search term'}</p>
       <SearchResults searchResults={searchResults} />
-    </div>
+    </Stack>
   );
 }
 
