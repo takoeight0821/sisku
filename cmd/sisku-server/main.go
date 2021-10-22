@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -10,26 +11,41 @@ import (
 	"github.com/takoeight0821/sisku/lsif"
 )
 
+type ServerError struct {
+	Message string `json:"message"`
+}
+
 func searchHandler(index lsif.Index, hovers []lsif.HoverResult) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "<h1>Sisku</h1>\n")
-		fmt.Fprintf(w, "<form action=\"/search\" method=\"GET\">\n")
-		fmt.Fprintf(w, "<input type=\"search\" name=\"q\">\n")
-		fmt.Fprintf(w, "<input type=\"submit\" value=\"Search\">\n")
-		fmt.Fprintf(w, "</form>\n")
-
+		w.Header().Set("Content-Type", "application/json")
 		query := r.URL.Query()
-		if query["q"] != nil {
-			fmt.Fprintf(w, "<p>You searched for: %q</p>\n", query.Get("q"))
-			if r, err := regexp.Compile(query.Get("q")); err != nil {
-				fmt.Fprintf(w, "Error: %v", err)
-			} else {
-				for i, r := range index.Search(hovers, *r) {
-					fmt.Fprintf(w, "<h2> Result %d </h2>", i)
-					fmt.Fprint(w, r.Render(index))
-				}
+		if query["q"] == nil {
+			sErr, err := json.Marshal(ServerError{Message: "query parameter is required"})
+			if err != nil {
+				log.Fatal(err)
 			}
+			http.Error(w, string(sErr), http.StatusBadRequest)
+			return
 		}
+		reg, err := regexp.Compile(query.Get("q"))
+		if err != nil {
+			sErr, err := json.Marshal(ServerError{Message: err.Error()})
+			if err != nil {
+				log.Fatal(err)
+			}
+			http.Error(w, string(sErr), http.StatusBadRequest)
+			return
+		}
+		result, err := json.MarshalIndent(index.Search(hovers, *reg), "", "  ")
+		if err != nil {
+			sErr, err := json.Marshal(ServerError{Message: err.Error()})
+			if err != nil {
+				log.Fatal(err)
+			}
+			http.Error(w, string(sErr), http.StatusInternalServerError)
+			return
+		}
+		fmt.Fprintln(w, string(result))
 	}
 }
 
@@ -43,6 +59,6 @@ func main() {
 	}
 	fmt.Println("Loaded index")
 
-	http.HandleFunc("/search/", searchHandler(index, hovers))
+	http.HandleFunc("/api/search/", searchHandler(index, hovers))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
