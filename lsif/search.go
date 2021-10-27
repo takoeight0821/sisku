@@ -1,8 +1,6 @@
 package lsif
 
-import (
-	"regexp"
-)
+import "strings"
 
 type SearchResult struct {
 	Hover      HoverResult
@@ -13,10 +11,10 @@ type SearchResult struct {
 }
 
 // search hoverResult in index
-func (i Index) Search(hovers []HoverResult, query regexp.Regexp) []SearchResult {
+func (i Index) Search(hovers []HoverResult, query string) []SearchResult {
 	results := []SearchResult{}
 	for _, h := range hovers {
-		if h.IsMatch(query) {
+		if strings.Contains(h.Contents, query) {
 			result, hit := i.searchResult[h.Id]
 			if !hit {
 				result = SearchResult{DefRanges: []Element{}, Others: []Element{}}

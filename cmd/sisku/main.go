@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/takoeight0821/sisku/lsif"
 )
@@ -22,13 +21,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if r, err := regexp.Compile(*query); err != nil {
+	json, err := json.MarshalIndent(index.Search(hovers, *query), "", "  ")
+	if err != nil {
 		log.Fatal(err)
-	} else {
-		json, err := json.MarshalIndent(index.Search(hovers, *r), "", "  ")
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(string(json))
 	}
+	fmt.Println(string(json))
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 
 	"github.com/takoeight0821/sisku/lsif"
 )
@@ -29,17 +28,7 @@ func searchHandler(index lsif.Index, hovers []lsif.HoverResult) func(http.Respon
 			log.Println(string(sErr))
 			return
 		}
-		reg, err := regexp.Compile(query.Get("q"))
-		if err != nil {
-			sErr, err := json.Marshal(ServerError{Message: err.Error()})
-			if err != nil {
-				log.Fatal(err)
-			}
-			http.Error(w, string(sErr), http.StatusBadRequest)
-			log.Println(string(sErr))
-			return
-		}
-		result, err := json.Marshal(index.Search(hovers, *reg))
+		result, err := json.Marshal(index.Search(hovers, query.Get("q")))
 		if err != nil {
 			sErr, err := json.Marshal(ServerError{Message: err.Error()})
 			if err != nil {
