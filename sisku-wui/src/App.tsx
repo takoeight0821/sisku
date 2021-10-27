@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import ReactMarkdown from 'react-markdown';
-import Stack from 'react-bootstrap/Stack';
-import Form from 'react-bootstrap/Form';
-import Card from 'react-bootstrap/Card';
+import Container from '@mui/material/Container';
+import TextField from '@mui/material/TextField';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
 
 type SearchResult = {
   Hover: HoverResult;
@@ -33,13 +36,11 @@ type LSRange = {
 
 type Position = {
   Line: number;
-  Character: number; 
+  Character: number;
 }
 
 const SearchBar = ({ onSearchTermChange }: { onSearchTermChange: (searchTerm: string) => void }) => {
-  return <Form>
-    <Form.Control type="text" placeholder="Search" onChange={(e) => onSearchTermChange(e.target.value)} /> 
-  </Form>
+  return <TextField label="Search" onChange={(e) => onSearchTermChange(e.target.value)} />
 };
 
 const SearchResults = ({ searchResults }: { searchResults: SearchResult[] }) => {
@@ -51,30 +52,28 @@ const SearchResults = ({ searchResults }: { searchResults: SearchResult[] }) => 
 };
 
 const Entry = ({ index, searchResult }: { index: number, searchResult: SearchResult }) => {
-  return <Card className="border" body>
-    <h2>Result {index}</h2>
-    <h3>Hovers</h3>
-    <Card className="bg-light" body>
-      <ReactMarkdown children={searchResult.Hover.Contents} />
-    </Card>
-    <h3>Definition</h3>
-    <p>{JSON.stringify(searchResult.Definition.Payload)}</p>
+  return <>
+    <Typography variant="h2">Result {index}</Typography>
+    <Typography variant="h3">Hovers</Typography>
+    <ReactMarkdown children={searchResult.Hover.Contents} />
+    <Typography variant="h3">Definition</Typography>
+    <Typography>{JSON.stringify(searchResult.Definition.Payload)}</Typography>
     <ul>
       {searchResult.DefRanges.map((defRange, i) =>
         <li key={i}>
-          <div className="text-break">{JSON.stringify(defRange.Payload)}</div>
+          <Typography>{JSON.stringify(defRange.Payload)}</Typography>
         </li>
       )}
     </ul>
-    <h3>Moniker</h3>
-    <p className="text-break">{JSON.stringify(searchResult.Moniker.Payload)}</p>
-    <h3>Others</h3>
+    <Typography variant="h3">Moniker</Typography>
+    <Typography>{JSON.stringify(searchResult.Moniker.Payload)}</Typography>
+    <Typography variant="h3">Others</Typography>
     <ul>
       {searchResult.Others.map((other, i) => <li key={i}>
-        <div className="text-break">{JSON.stringify(other.Payload)}</div>
+        <Typography>{JSON.stringify(other.Payload)}</Typography>
       </li>)}
     </ul>
-  </Card>
+  </>
 };
 
 function App() {
@@ -95,11 +94,11 @@ function App() {
   }, [searchTerm]);
 
   return (
-    <Stack className="p-3" gap={4}>
+    <Container sx={{paddingTop: 2}}>
       <SearchBar onSearchTermChange={setSearchTerm} />
-      <p>{searchTerm.length > 0 ? `Searching for ${searchTerm}` : 'Please enter a search term'}</p>
+      <Typography>{searchTerm.length > 0 ? `Searching for ${searchTerm}` : 'Please enter a search term'}</Typography>
       <SearchResults searchResults={searchResults} />
-    </Stack>
+    </Container>
   );
 }
 
