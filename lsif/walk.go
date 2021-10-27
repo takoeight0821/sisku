@@ -2,10 +2,12 @@ package lsif
 
 // look up the vertex with the given label
 func (i Index) Lookup(l string) []Element {
-	var result []Element
-	for _, v := range i.Elements {
-		if v.Label == l {
-			result = append(result, v)
+	result, hit := i.lookupMap[l]
+	if !hit {
+		for _, v := range i.Elements {
+			if v.Label == l {
+				result = append(result, v)
+			}
 		}
 	}
 	return result
@@ -13,13 +15,16 @@ func (i Index) Lookup(l string) []Element {
 
 // all vertexes that are reachable to the given vertex
 func (i Index) Back(v Element) []Element {
-	var result []Element
-	for _, edge := range i.Edges {
-		for _, inV := range edge.InVs {
-			if inV == v.Id {
-				result = append(result, i.GetElement(edge.OutV))
+	result, hit := i.back[v.Id]
+	if !hit {
+		for _, edge := range i.Edges {
+			for _, inV := range edge.InVs {
+				if inV == v.Id {
+					result = append(result, i.GetElement(edge.OutV))
+				}
 			}
 		}
+		i.back[v.Id] = result
 	}
 	return result
 }
@@ -39,18 +44,21 @@ func (i Index) Forward(v Element) []Element {
 
 // all vertexes that are reachable from the given "resultSet" or "range"
 func (i Index) Results(from Element) []Element {
-	var result []Element
-	for _, v := range i.Elements {
-		if v.Id == from.Id {
-			for _, next := range i.Forward(v) {
-				if next.Label == "resultSet" {
-					result = append(result, i.Forward(next)...)
-				} else {
-					result = append(result, next)
+	result, hit := i.results[from.Id]
+	if !hit {
+		for _, v := range i.Elements {
+			if v.Id == from.Id {
+				for _, next := range i.Forward(v) {
+					if next.Label == "resultSet" {
+						result = append(result, i.Forward(next)...)
+					} else {
+						result = append(result, next)
 
+					}
 				}
 			}
 		}
+		i.results[from.Id] = result
 	}
 	return result
 }

@@ -16,24 +16,26 @@ type SearchResult struct {
 func (i Index) Search(hovers []HoverResult, query regexp.Regexp) []SearchResult {
 	results := []SearchResult{}
 	for _, h := range hovers {
-		var result SearchResult
-		result.DefRanges = []Element{}
-		result.Others = []Element{}
 		if h.IsMatch(query) {
-			result.Hover = h
-			for _, p := range i.Back(i.GetElement(h.Id)) {
-				for _, r := range i.Results(p) {
-					switch r.Label {
-					case "definitionResult":
-						result.Definition = r
-						result.DefRanges = append(result.DefRanges, i.Forward(r)...)
-					case "moniker":
-						result.Moniker = r
-					case "hoverResult":
-					default:
-						result.Others = append(result.Others, r)
+			result, hit := i.searchResult[h.Id]
+			if !hit {
+				result = SearchResult{DefRanges: []Element{}, Others: []Element{}}
+				result.Hover = h
+				for _, p := range i.Back(i.GetElement(h.Id)) {
+					for _, r := range i.Results(p) {
+						switch r.Label {
+						case "definitionResult":
+							result.Definition = r
+							result.DefRanges = append(result.DefRanges, i.Forward(r)...)
+						case "moniker":
+							result.Moniker = r
+						case "hoverResult":
+						default:
+							result.Others = append(result.Others, r)
+						}
 					}
 				}
+				i.searchResult[h.Id] = result
 			}
 			results = append(results, result)
 		}
