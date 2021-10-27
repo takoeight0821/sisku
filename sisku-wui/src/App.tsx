@@ -3,9 +3,6 @@ import './App.css';
 import ReactMarkdown from 'react-markdown';
 import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 
 type SearchResult = {
@@ -94,7 +91,7 @@ function App() {
   }, [searchTerm]);
 
   return (
-    <Container sx={{paddingTop: 2}}>
+    <Container sx={{ paddingTop: 2 }}>
       <SearchBar onSearchTermChange={setSearchTerm} />
       <Typography>{searchTerm.length > 0 ? `Searching for ${searchTerm}` : 'Please enter a search term'}</Typography>
       <SearchResults searchResults={searchResults} />
