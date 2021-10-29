@@ -106,12 +106,11 @@ func (e *Edge) UnmarshalJSON(b []byte) error {
 }
 
 type Index struct {
-	Edges        []Edge
-	Elements     map[int]Element
-	lookupMap    map[string][]Element
-	back         map[int][]Element
-	results      map[int][]Element
-	searchResult map[int]SearchResult
+	Edges     []Edge
+	Elements  map[int]Element
+	lookupMap map[string][]Element
+	back      map[int][]Element
+	results   map[int][]Element
 }
 
 func NewIndex(edges []Edge, elements []Element) Index {
@@ -122,12 +121,11 @@ func NewIndex(edges []Edge, elements []Element) Index {
 		lookupMap[e.Label] = append(lookupMap[e.Label], e)
 	}
 	return Index{
-		Edges:        edges,
-		Elements:     elems,
-		lookupMap:    lookupMap,
-		back:         make(map[int][]Element),
-		results:      make(map[int][]Element),
-		searchResult: make(map[int]SearchResult),
+		Edges:     edges,
+		Elements:  elems,
+		lookupMap: lookupMap,
+		back:      make(map[int][]Element),
+		results:   make(map[int][]Element),
 	}
 }
 

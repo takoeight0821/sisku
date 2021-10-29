@@ -10,7 +10,6 @@ type SearchResult = {
   Definition: Element;
   DefRanges: Element[];
   Moniker: Element;
-  Others: Element[];
 };
 
 type HoverResult = {
@@ -43,7 +42,7 @@ const SearchBar = ({ onSearchTermChange }: { onSearchTermChange: (searchTerm: st
 const SearchResults = ({ searchResults }: { searchResults: SearchResult[] }) => {
   return <div>
     {searchResults.map((searchResult, i) =>
-      <Entry index={i} searchResult={searchResult} />
+      <Entry key={i} index={i} searchResult={searchResult} />
     )}
   </div>
 };
@@ -64,12 +63,6 @@ const Entry = ({ index, searchResult }: { index: number, searchResult: SearchRes
     </ul>
     <Typography variant="h3">Moniker</Typography>
     <Typography>{JSON.stringify(searchResult.Moniker.Payload)}</Typography>
-    <Typography variant="h3">Others</Typography>
-    <ul>
-      {searchResult.Others.map((other, i) => <li key={i}>
-        <Typography>{JSON.stringify(other.Payload)}</Typography>
-      </li>)}
-    </ul>
   </>
 };
 
@@ -82,6 +75,7 @@ function App() {
     if (searchTerm.length > 0) {
       fetch(endpoint + "?q=" + searchTerm, { mode: 'cors' })
         .then(response => response.json())
+        .then(data => { console.log(data); return data; })
         .then(data => setSearchResults(data))
         .catch(error => {
           console.error(error)
