@@ -1,0 +1,8 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:sisku"
+    - path: "app"
+      component: "sisku:exe:sisku-exe"
+    - path: "text"
+      component: "sisku:test:sisku-test"
