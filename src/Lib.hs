@@ -1,16 +1,19 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Lib (loadFile, search, searchResultToJson) where
+module Lib (loadFile, search, SearchResult(..), SearchApi, searchServer) where
 
 import Control.Lens ((^?))
 import Data.Aeson
 import Data.Aeson.Lens
 import Data.Graph.Inductive (Gr, Graph (labNodes), lab, mkGraph, pre, suc)
-import Data.Graph.Inductive.Graph (Node)
 import Flow ((|>))
 import Relude
 import qualified Relude.Unsafe as Unsafe
+import Servant.API
+import Servant.Server
+import Data.List (isInfixOf)
 
+-- | LSIF Graph
 newtype Index = Index
   { graph :: Gr Value Text
   }
@@ -40,42 +43,62 @@ valuesToIndex vs = Index {graph = mkGraph nodes edges}
           label = fromMaybe "noLabel" (x ^? key "label" . _String)
        in map (outV,,label) inVs
 
+-- | Search result
 data SearchResult = SearchResult
-  { hover :: Node,
-    definition :: Node,
-    defRanges :: [(Node, Node)],
-    moniker :: Node
+  { hover :: Value,
+    definition :: Value,
+    defRanges :: [(Value, Value)],
+    moniker :: Value
   }
-  deriving stock (Show)
+  deriving stock (Show, Generic)
 
-search :: Index -> [SearchResult]
-search Index {graph = gr} = map ?? hoverResults $ \hoverResult ->
-  executingState SearchResult {hover = hoverResult, definition = 0, defRanges = [], moniker = 0} do
-    traverse_ ?? pre gr hoverResult $ \p ->
-      traverse_ ?? results p $ \r ->
-        case Unsafe.fromJust (lab gr r) ^? key "label" of
-          Just (String "definitionResult") -> do
-            modify $ \x -> x {definition = r}
-            modify $ \x -> x {defRanges = defRanges x <> defRange r}
-          Just (String "moniker") -> do
-            modify $ \x -> x {moniker = r}
-          _ -> pure ()
+instance ToJSON SearchResult
+
+search :: Index -> (SearchResult -> Bool) -> [SearchResult]
+search Index {graph = gr} filterPred = filter filterPred $
+  map ?? hoverResults $ \hoverResult ->
+    executingState SearchResult {hover = getValue hoverResult, definition = Null, defRanges = [], moniker = Null} do
+      traverse_ goResult (concatMap results (pre gr hoverResult))
   where
+    getValue x = fromMaybe Null $ lab gr x
+
     hoverResults = map fst $ filter (\(_, v) -> v ^? key "label" == Just (String "hoverResult")) $ labNodes gr
     results i = concatMap ?? suc gr i $ \next ->
-      if Unsafe.fromJust (lab gr next) ^? key "label" == Just (String "resultSet")
+      if getValue next ^? key "label" == Just (String "resultSet")
         then suc gr next
         else [next]
     defRange defNode = do
       range <- suc gr defNode
       definition <- filter (\p -> Unsafe.fromJust (lab gr p) ^? key "label" == Just (String "document")) $ pre gr range
-      pure (definition, range)
+      pure (getValue definition, getValue range)
 
-searchResultToJson :: Index -> SearchResult -> Value
-searchResultToJson Index {graph = gr} SearchResult {..} =
-  object
-    [ "hover" .= lab gr hover,
-      "definition" .= lab gr definition,
-      "defRanges" .= map (bimap (lab gr) (lab gr)) defRanges,
-      "moniker" .= lab gr moniker
-    ]
+    goResult r =
+      case getValue r ^? key "label" of
+        Just (String "definitionResult") -> do
+          modify $ \x -> x {definition = getValue r}
+          modify $ \x -> x {defRanges = defRanges x <> defRange r}
+        Just (String "moniker") -> do
+          modify $ \x -> x {moniker = getValue r}
+        _ -> pure ()
+
+-- * Server
+
+type SearchApi = "all-list" :> Get '[JSON] [SearchResult]
+              :<|> "search" :> QueryParam "q" String :> Get '[JSON] [SearchResult]
+
+searchServer :: Index -> Server SearchApi
+searchServer index = allListHandler :<|> searchHandler
+  where
+    allListHandler :: Handler [SearchResult]
+    allListHandler = return (search index (const True))
+
+    searchHandler :: Maybe String -> Handler [SearchResult]
+    searchHandler Nothing = return []
+    searchHandler (Just query) = return (search index (filterByQuery query))
+
+    filterByQuery [] _ = True
+    filterByQuery q SearchResult {..} =
+      case hover ^? key "result" . key "contents" . key "value" of
+        Just (String contents) -> q `isInfixOf` toString contents
+        _ -> False
+

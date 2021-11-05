@@ -29,6 +29,11 @@ dependencies:
 - pretty-simple
 - relude
 - servant
+- optparse-applicative
+- wai
+- wai-cors
+- warp
+- servant-server
 
 ghc-options:
   - -Wall
@@ -81,6 +86,7 @@ default-extensions:
   - TypeApplications
   - TypeFamilies
   - TypeSynonymInstances
+  - TypeOperators
   - ViewPatterns
   - StrictData
 

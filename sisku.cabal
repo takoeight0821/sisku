@@ -70,6 +70,7 @@ library
       TypeApplications
       TypeFamilies
       TypeSynonymInstances
+      TypeOperators
       ViewPatterns
       StrictData
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies
@@ -80,9 +81,14 @@ library
     , flow
     , lens
     , lens-aeson
+    , optparse-applicative
     , pretty-simple
     , relude
     , servant
+    , servant-server
+    , wai
+    , wai-cors
+    , warp
   default-language: Haskell2010
 
 executable sisku-exe
@@ -131,6 +137,7 @@ executable sisku-exe
       TypeApplications
       TypeFamilies
       TypeSynonymInstances
+      TypeOperators
       ViewPatterns
       StrictData
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies -threaded -rtsopts -with-rtsopts=-N
@@ -141,10 +148,15 @@ executable sisku-exe
     , flow
     , lens
     , lens-aeson
+    , optparse-applicative
     , pretty-simple
     , relude
     , servant
+    , servant-server
     , sisku
+    , wai
+    , wai-cors
+    , warp
   default-language: Haskell2010
 
 test-suite sisku-test
@@ -194,6 +206,7 @@ test-suite sisku-test
       TypeApplications
       TypeFamilies
       TypeSynonymInstances
+      TypeOperators
       ViewPatterns
       StrictData
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies -threaded -rtsopts -with-rtsopts=-N
@@ -204,8 +217,13 @@ test-suite sisku-test
     , flow
     , lens
     , lens-aeson
+    , optparse-applicative
     , pretty-simple
     , relude
     , servant
+    , servant-server
     , sisku
+    , wai
+    , wai-cors
+    , warp
   default-language: Haskell2010

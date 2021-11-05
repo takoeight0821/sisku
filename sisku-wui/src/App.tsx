@@ -6,33 +6,33 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 type SearchResult = {
-  Hover: HoverResult;
-  Definition: Element;
-  DefRanges: Element[];
-  Moniker: Element;
+  hover: HoverResult;
+  definition: Element;
+  defRanges: Element[];
+  moniker: Element;
 };
 
 type HoverResult = {
-  Id: number;
-  Contents: string;
+  id: number;
+  result: { contents: { kind: string, value: string } };
   rng: LSRange | null;
 }
 
 type Element = {
-  Id: number;
-  Label: string;
-  Type: 'vertex' | 'edge';
-  Payload: any;
+  id: number;
+  label: string;
+  type: 'vertex' | 'edge';
+  payload: any;
 }
 
 type LSRange = {
-  Start: Position;
-  End: Position;
+  start: Position;
+  end: Position;
 }
 
 type Position = {
-  Line: number;
-  Character: number;
+  line: number;
+  character: number;
 }
 
 const SearchBar = ({ onSearchTermChange }: { onSearchTermChange: (searchTerm: string) => void }) => {
@@ -51,23 +51,23 @@ const Entry = ({ index, searchResult }: { index: number, searchResult: SearchRes
   return <>
     <Typography variant="h2">Result {index}</Typography>
     <Typography variant="h3">Hovers</Typography>
-    <ReactMarkdown children={searchResult.Hover.Contents} />
+    <ReactMarkdown children={searchResult.hover.result.contents.value} />
     <Typography variant="h3">Definition</Typography>
-    <Typography>{JSON.stringify(searchResult.Definition.Payload)}</Typography>
+    <Typography>{JSON.stringify(searchResult.definition)}</Typography>
     <ul>
-      {searchResult.DefRanges.map((defRange, i) =>
+      {searchResult.defRanges.map((defRange, i) =>
         <li key={i}>
-          <Typography>{JSON.stringify(defRange.Payload)}</Typography>
+          <Typography>{JSON.stringify(defRange)}</Typography>
         </li>
       )}
     </ul>
     <Typography variant="h3">Moniker</Typography>
-    <Typography>{JSON.stringify(searchResult.Moniker.Payload)}</Typography>
+    <Typography>{JSON.stringify(searchResult.moniker)}</Typography>
   </>
 };
 
 function App() {
-  const endpoint = "http://localhost:8080/api/search/"
+  const endpoint = "http://localhost:8080/search"
   const [searchTerm, setSearchTerm] = React.useState('');
   const [searchResults, setSearchResults] = React.useState([] as SearchResult[]);
 
