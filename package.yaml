@@ -28,6 +28,7 @@ dependencies:
 - lens-aeson
 - pretty-simple
 - relude
+- servant
 
 ghc-options:
   - -Wall
