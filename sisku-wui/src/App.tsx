@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import {Element, Hover, HoverResult} from './lsif';
 
 type SearchResult = {
   hover: HoverResult;
@@ -11,29 +12,6 @@ type SearchResult = {
   defRanges: Element[];
   moniker: Element;
 };
-
-type HoverResult = {
-  id: number;
-  result: { contents: { kind: string, value: string } };
-  rng: LSRange | null;
-}
-
-type Element = {
-  id: number;
-  label: string;
-  type: 'vertex' | 'edge';
-  payload: any;
-}
-
-type LSRange = {
-  start: Position;
-  end: Position;
-}
-
-type Position = {
-  line: number;
-  character: number;
-}
 
 const SearchBar = ({ onSearchTermChange }: { onSearchTermChange: (searchTerm: string) => void }) => {
   return <TextField label="Search" onChange={(e) => onSearchTermChange(e.target.value)} />
@@ -47,12 +25,26 @@ const SearchResults = ({ searchResults }: { searchResults: SearchResult[] }) => 
   </div>
 };
 
+// Get markdown string from Hover.
+const getMarkdownString = (hover: Hover): string => {
+  if (typeof hover.contents === "string") {
+    return hover.contents;
+  }
+  if (Array.isArray(hover.contents)) {
+    return hover.contents.join("\n");
+  }
+  if ('language' in hover.contents) {
+    return '```' + hover.contents.language + '\n' + hover.contents.value + '\n```';
+  }
+  return hover.contents.value;
+}
+
 const Entry = ({ index, searchResult }: { index: number, searchResult: SearchResult }) => {
   return <>
-    <Typography variant="h2">Result {index}</Typography>
-    <Typography variant="h3">Hovers</Typography>
-    <ReactMarkdown children={searchResult.hover.result.contents.value} />
-    <Typography variant="h3">Definition</Typography>
+    <Typography variant="subtitle1">Result {index}</Typography>
+    <Typography variant="subtitle2">Hovers</Typography>
+    <ReactMarkdown children={getMarkdownString(searchResult.hover.result)} />
+    <Typography variant="subtitle2">Definition</Typography>
     <Typography>{JSON.stringify(searchResult.definition)}</Typography>
     <ul>
       {searchResult.defRanges.map((defRange, i) =>
@@ -61,7 +53,7 @@ const Entry = ({ index, searchResult }: { index: number, searchResult: SearchRes
         </li>
       )}
     </ul>
-    <Typography variant="h3">Moniker</Typography>
+    <Typography variant="subtitle2">Moniker</Typography>
     <Typography>{JSON.stringify(searchResult.moniker)}</Typography>
   </>
 };
