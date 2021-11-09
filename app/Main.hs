@@ -1,9 +1,6 @@
 module Main where
 
-import Control.Lens ((^?))
 import qualified Data.Aeson as Aeson
-import Data.Aeson.Lens (key)
-import Data.List (isInfixOf)
 import Lib
 import Options.Applicative
 import Relude
@@ -37,9 +34,3 @@ main = do
       info
         (siskuOption <**> helper)
         (fullDesc <> progDesc "Sisku" <> header "sisku")
-    filterByQuery [] _ = True
-    filterByQuery q SearchResult {..} =
-      case hover ^? key "result" . key "contents" . key "value" of
-        Just (Aeson.String contents) -> q `isInfixOf` toString contents
-        _ -> False
-
