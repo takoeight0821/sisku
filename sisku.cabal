@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Lsif
   other-modules:
       Paths_sisku
   hs-source-dirs:
@@ -82,6 +83,7 @@ library
     , lens
     , lens-aeson
     , optparse-applicative
+    , pandoc
     , pretty-simple
     , relude
     , servant
@@ -149,6 +151,7 @@ executable sisku-exe
     , lens
     , lens-aeson
     , optparse-applicative
+    , pandoc
     , pretty-simple
     , relude
     , servant
@@ -218,6 +221,7 @@ test-suite sisku-test
     , lens
     , lens-aeson
     , optparse-applicative
+    , pandoc
     , pretty-simple
     , relude
     , servant

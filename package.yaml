@@ -34,6 +34,7 @@ dependencies:
 - wai-cors
 - warp
 - servant-server
+- pandoc
 
 ghc-options:
   - -Wall
