@@ -1,17 +1,18 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Lib (loadFile, search, SearchResult(..), SearchApi, searchServer) where
+module Lib (loadFile, search, Hovercraft (..), SearchApi, searchServer, filterByQuery) where
 
 import Control.Lens ((^?))
 import Data.Aeson
 import Data.Aeson.Lens
 import Data.Graph.Inductive (Gr, Graph (labNodes), lab, mkGraph, pre, suc)
+import Data.List (isInfixOf)
 import Flow ((|>))
+import Lsif
 import Relude
 import qualified Relude.Unsafe as Unsafe
 import Servant.API
 import Servant.Server
-import Data.List (isInfixOf)
 
 -- | LSIF Graph
 newtype Index = Index
@@ -43,24 +44,30 @@ valuesToIndex vs = Index {graph = mkGraph nodes edges}
           label = fromMaybe "noLabel" (x ^? key "label" . _String)
        in map (outV,,label) inVs
 
--- | Search result
-data SearchResult = SearchResult
-  { hover :: Value,
+-- | Hover document and definition information
+data Hovercraft = Hovercraft
+  { hover :: HoverResult,
     definition :: Value,
-    defRanges :: [(Value, Value)],
+    defRanges :: [(Element, Range)],
     moniker :: Value
   }
   deriving stock (Show, Generic)
 
-instance ToJSON SearchResult
+instance ToJSON Hovercraft
 
-search :: Index -> (SearchResult -> Bool) -> [SearchResult]
+search :: Index -> (Hovercraft -> Bool) -> [Hovercraft]
 search Index {graph = gr} filterPred = filter filterPred $
   map ?? hoverResults $ \hoverResult ->
-    executingState SearchResult {hover = getValue hoverResult, definition = Null, defRanges = [], moniker = Null} do
+    executingState Hovercraft {hover = getHoverResult hoverResult, definition = Null, defRanges = [], moniker = Null} do
       traverse_ goResult (concatMap results (pre gr hoverResult))
   where
     getValue x = fromMaybe Null $ lab gr x
+    getHoverResult x = case fromJSON $ fromMaybe Null $ lab gr x of
+      Success hr -> hr
+      Error mes -> error $ toText mes
+    getRange x = case fromJSON $ fromMaybe Null $ lab gr x of
+      Success hr -> hr
+      Error mes -> error $ toText mes
 
     hoverResults = map fst $ filter (\(_, v) -> v ^? key "label" == Just (String "hoverResult")) $ labNodes gr
     results i = concatMap ?? suc gr i $ \next ->
@@ -70,7 +77,7 @@ search Index {graph = gr} filterPred = filter filterPred $
     defRange defNode = do
       range <- suc gr defNode
       definition <- filter (\p -> Unsafe.fromJust (lab gr p) ^? key "label" == Just (String "document")) $ pre gr range
-      pure (getValue definition, getValue range)
+      pure (getValue definition, getRange range)
 
     goResult r =
       case getValue r ^? key "label" of
@@ -83,22 +90,21 @@ search Index {graph = gr} filterPred = filter filterPred $
 
 -- * Server
 
-type SearchApi = "all-list" :> Get '[JSON] [SearchResult]
-              :<|> "search" :> QueryParam "q" String :> Get '[JSON] [SearchResult]
+type SearchApi =
+  "all-list" :> Get '[JSON] [Hovercraft]
+    :<|> "search" :> QueryParam "q" String :> Get '[JSON] [Hovercraft]
 
 searchServer :: Index -> Server SearchApi
 searchServer index = allListHandler :<|> searchHandler
   where
-    allListHandler :: Handler [SearchResult]
+    allListHandler :: Handler [Hovercraft]
     allListHandler = return (search index (const True))
 
-    searchHandler :: Maybe String -> Handler [SearchResult]
+    searchHandler :: Maybe String -> Handler [Hovercraft]
     searchHandler Nothing = return []
     searchHandler (Just query) = return (search index (filterByQuery query))
 
-    filterByQuery [] _ = True
-    filterByQuery q SearchResult {..} =
-      case hover ^? key "result" . key "contents" . key "value" of
-        Just (String contents) -> q `isInfixOf` toString contents
-        _ -> False
-
+filterByQuery :: String -> Hovercraft -> Bool
+filterByQuery [] _ = True
+filterByQuery q Hovercraft {..} =
+  hover |> result |> contents |> value |> toString |> isInfixOf q
