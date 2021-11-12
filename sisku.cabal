@@ -85,9 +85,11 @@ library
     , optparse-applicative
     , pandoc
     , pretty-simple
+    , process
     , relude
     , servant
     , servant-server
+    , text
     , wai
     , wai-cors
     , warp
@@ -153,10 +155,12 @@ executable sisku-exe
     , optparse-applicative
     , pandoc
     , pretty-simple
+    , process
     , relude
     , servant
     , servant-server
     , sisku
+    , text
     , wai
     , wai-cors
     , warp
@@ -223,10 +227,12 @@ test-suite sisku-test
     , optparse-applicative
     , pandoc
     , pretty-simple
+    , process
     , relude
     , servant
     , servant-server
     , sisku
+    , text
     , wai
     , wai-cors
     , warp
