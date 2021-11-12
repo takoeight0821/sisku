@@ -3,7 +3,7 @@
 module Main where
 
 import qualified Data.Aeson as Aeson
-import Lib
+import Sisku
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (simpleCors)
 import Options.Applicative

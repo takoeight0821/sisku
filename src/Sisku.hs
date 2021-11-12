@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Lib (loadFile, search, Hovercraft (..), SearchApi, searchServer, filterByQuery) where
+module Sisku (loadFile, search, Hovercraft (..), SearchApi, searchServer, filterByQuery) where
 
 import Control.Lens ((^?))
 import Data.Aeson
