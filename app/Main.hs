@@ -33,7 +33,7 @@ main = do
       | isServerMode opt -> do
         index <- loadFile (filePath opt)
         run 8080 (simpleCors $ serve (Proxy :: Proxy SearchApi) (searchServer index))
-      | isLspClientMode opt -> runLspClient "." "src/LspClient.hs" "haskell-language-server-wrapper" ["--lsp"]
+      | isLspClientMode opt -> runLspClient "src" "hs" "haskell-language-server-wrapper" ["--lsp"]
       | otherwise -> do
         index <- loadFile (filePath opt)
         putLBS $ Aeson.encode $ Aeson.Array $ fromList $ map Aeson.toJSON (search index (filterByQuery $ query opt))

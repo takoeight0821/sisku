@@ -84,7 +84,9 @@ library
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
+    , extra
     , fgl
+    , filepath
     , flow
     , lens
     , lens-aeson
@@ -161,7 +163,9 @@ executable sisku-exe
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
+    , extra
     , fgl
+    , filepath
     , flow
     , lens
     , lens-aeson
@@ -240,7 +244,9 @@ test-suite sisku-test
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
+    , extra
     , fgl
+    , filepath
     , flow
     , lens
     , lens-aeson

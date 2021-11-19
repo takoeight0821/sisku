@@ -21,25 +21,27 @@ description:         Please see the README on GitHub at <https://github.com/tako
 
 dependencies:
 - aeson
+- async
 - base >= 4.7 && < 5
+- extra
 - fgl
+- filepath
 - flow
 - lens
 - lens-aeson
-- text
+- lsp-test
+- lsp-types
+- optparse-applicative
+- pandoc
 - pretty-simple
 - process
 - relude
 - servant
-- optparse-applicative
+- servant-server
+- text
 - wai
 - wai-cors
 - warp
-- servant-server
-- pandoc
-- lsp-test
-- lsp-types
-- async
 # following needed because of https://github.com/alanz/lsp/issues/263
 - constraints-extras == 0.3.0.2
 - dependent-map == 0.4.0.0
