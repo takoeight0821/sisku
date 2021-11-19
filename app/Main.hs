@@ -13,7 +13,7 @@ import Sisku
 
 data SiskuOption = SiskuOption
   { filePath :: FilePath,
-    query :: String,
+    query :: Text,
     isServerMode :: Bool,
     isLspClientMode :: Bool
   }
