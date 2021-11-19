@@ -88,6 +88,7 @@ library
     , flow
     , lens
     , lens-aeson
+    , lsp-test
     , lsp-types
     , optparse-applicative
     , pandoc
@@ -164,6 +165,7 @@ executable sisku-exe
     , flow
     , lens
     , lens-aeson
+    , lsp-test
     , lsp-types
     , optparse-applicative
     , pandoc
@@ -242,6 +244,7 @@ test-suite sisku-test
     , flow
     , lens
     , lens-aeson
+    , lsp-test
     , lsp-types
     , optparse-applicative
     , pandoc
