@@ -140,7 +140,3 @@ export interface Element {
 	label: string;
 	type: 'vertex' | 'edge';
 }
-
-export interface HoverResult extends Element {
-	result: Hover;
-}
