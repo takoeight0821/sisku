@@ -4,5 +4,5 @@ cradle:
       component: "lib:sisku"
     - path: "app"
       component: "sisku:exe:sisku-exe"
-    - path: "text"
+    - path: "test"
       component: "sisku:test:sisku-test"
