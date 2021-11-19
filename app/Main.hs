@@ -3,7 +3,6 @@
 module Main where
 
 import qualified Data.Aeson as Aeson
-import LspClient (runLspClient)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (simpleCors)
 import Options.Applicative
@@ -29,14 +28,13 @@ siskuOption =
 main :: IO ()
 main = do
   opt <- execParser opts
-  if
-      | isServerMode opt -> do
-        index <- loadFile (filePath opt)
-        run 8080 (simpleCors $ serve (Proxy :: Proxy SearchApi) (searchServer index))
-      | isLspClientMode opt -> runLspClient "src" "hs" "haskell-language-server-wrapper" ["--lsp"]
-      | otherwise -> do
-        index <- loadFile (filePath opt)
-        putLBS $ Aeson.encode $ Aeson.Array $ fromList $ map Aeson.toJSON (search index (filterByQuery $ query opt))
+  hovercrafts <-
+    if isLspClientMode opt
+      then buildHovercraft "src" "hs" "haskell-language-server-wrapper" ["--lsp"]
+      else indexToHovercraft <$> loadLsifFromFile (filePath opt)
+  if isServerMode opt
+    then run 8081 (simpleCors $ serve (Proxy :: Proxy SearchApi) (searchServer hovercrafts))
+    else putLBS $ Aeson.encode $ Aeson.Array $ fromList $ map Aeson.toJSON (filter (filterByQuery $ query opt) hovercrafts)
   where
     opts =
       info
