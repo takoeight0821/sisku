@@ -37,6 +37,13 @@ dependencies:
 - warp
 - servant-server
 - pandoc
+- lsp-types
+- async
+# following needed because of https://github.com/alanz/lsp/issues/263
+- constraints-extras == 0.3.0.2
+- dependent-map == 0.4.0.0
+- dependent-sum == 0.7.1.0
+- dependent-sum-template == 0.1.0.3
 
 ghc-options:
   - -Wall

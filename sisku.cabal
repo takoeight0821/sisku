@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lsif
+      LspClient
       Sisku
   other-modules:
       Paths_sisku
@@ -77,11 +78,17 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
+    , constraints-extras ==0.3.0.2
+    , dependent-map ==0.4.0.0
+    , dependent-sum ==0.7.1.0
+    , dependent-sum-template ==0.1.0.3
     , fgl
     , flow
     , lens
     , lens-aeson
+    , lsp-types
     , optparse-applicative
     , pandoc
     , pretty-simple
@@ -147,11 +154,17 @@ executable sisku-exe
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
+    , constraints-extras ==0.3.0.2
+    , dependent-map ==0.4.0.0
+    , dependent-sum ==0.7.1.0
+    , dependent-sum-template ==0.1.0.3
     , fgl
     , flow
     , lens
     , lens-aeson
+    , lsp-types
     , optparse-applicative
     , pandoc
     , pretty-simple
@@ -219,11 +232,17 @@ test-suite sisku-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
+    , constraints-extras ==0.3.0.2
+    , dependent-map ==0.4.0.0
+    , dependent-sum ==0.7.1.0
+    , dependent-sum-template ==0.1.0.3
     , fgl
     , flow
     , lens
     , lens-aeson
+    , lsp-types
     , optparse-applicative
     , pandoc
     , pretty-simple
