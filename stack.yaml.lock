@@ -5,16 +5,22 @@
 
 packages:
 - completed:
-    hackage: happy-1.20.0@sha256:f99e612b29d68d784d7e193943a13466f0923de69452a2585081491efed0436b,5709
+    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
     pantry-tree:
-      size: 8749
-      sha256: a90122967031e2feb99adbbacf57ddf8627a7c0444720402513d3f11ec7f990a
+      size: 594
+      sha256: 3ce1012bfb02e4d7def9df19ce80b8cd2b472c691b25b181d9960638673fecd1
   original:
-    hackage: happy-1.20.0
+    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
+- completed:
+    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
+    pantry-tree:
+      size: 867
+      sha256: c3422b7121927dd912d2b2b40d12f8addd991b83933d9f1415dfac883ada0c46
+  original:
+    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
 snapshots:
 - completed:
-    size: 594195
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/10/29.yaml
-    sha256: 6eca2192c85fa4df1f93ac039285d960db6ccad2a786729ef10df4f0537ae929
-  original:
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/10/29.yaml
+    size: 586286
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/16.yaml
+    sha256: cdead65fca0323144b346c94286186f4969bf85594d649c49c7557295675d8a5
+  original: lts-18.16
