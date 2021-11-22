@@ -3,12 +3,13 @@
 module Main where
 
 import qualified Data.Aeson as Aeson
-import Network.Wai.Handler.Warp (run)
+import Network.Wai.Handler.Warp (runSettings, setPort, setLogger, defaultSettings)
 import Network.Wai.Middleware.Cors (simpleCors)
 import Options.Applicative
 import Relude hiding (id)
 import Servant.Server (serve)
 import Sisku
+import Network.Wai.Logger (withStdoutLogger)
 
 data SiskuOption = SiskuOption
   { filePath :: FilePath,
@@ -32,8 +33,11 @@ main = do
     if isLspClientMode opt
       then buildHovercraft "src" "hs" "haskell-language-server-wrapper" ["--lsp"]
       else indexToHovercraft <$> loadLsifFromFile (filePath opt)
+  putStrLn "Ready"
   if isServerMode opt
-    then run 8081 (simpleCors $ serve (Proxy :: Proxy SearchApi) (searchServer hovercrafts))
+    then withStdoutLogger $ \aplogger -> do 
+      let settings = setPort 8081 $ setLogger aplogger defaultSettings
+      runSettings settings (simpleCors $ serve (Proxy :: Proxy SearchApi) (searchServer hovercrafts))
     else putLBS $ Aeson.encode $ Aeson.Array $ fromList $ map Aeson.toJSON (filter (filterByQuery $ query opt) hovercrafts)
   where
     opts =

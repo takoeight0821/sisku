@@ -101,6 +101,7 @@ library
     , text
     , wai
     , wai-cors
+    , wai-logger
     , warp
   default-language: Haskell2010
 
@@ -181,6 +182,7 @@ executable sisku-exe
     , text
     , wai
     , wai-cors
+    , wai-logger
     , warp
   default-language: Haskell2010
 
@@ -262,5 +264,6 @@ test-suite sisku-test
     , text
     , wai
     , wai-cors
+    , wai-logger
     , warp
   default-language: Haskell2010

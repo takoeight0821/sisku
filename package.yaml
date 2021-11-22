@@ -41,6 +41,7 @@ dependencies:
 - text
 - wai
 - wai-cors
+- wai-logger
 - warp
 # following needed because of https://github.com/alanz/lsp/issues/263
 - constraints-extras == 0.3.0.2
