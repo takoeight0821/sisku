@@ -107,7 +107,8 @@ const getMarkdownString = (hover: Hover): string => {
 }
 
 function App() {
-  const endpoint = "http://localhost:8081/search"
+  const endpoint = "/hovercraft"
+
   const [query, setQuery] = React.useState('');
   const [searchResults, setSearchResults] = React.useState([] as SearchResult[]);
 
@@ -119,10 +120,24 @@ function App() {
 
   useEffect(() => {
     if (query.length > 0) {
-      fetch(endpoint + "?q=" + query, { mode: 'cors' })
+      fetch(endpoint + "/_search", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          size: 10000,
+          query: {
+            match: {
+              "hover.contents.value": query
+            }
+          },
+        }),
+        mode: 'cors'
+      })
         .then(response => response.json())
         .then(data => { console.log(data); return data; })
-        .then(data => setSearchResults(data))
+        .then(data => setSearchResults(data.hits.hits.map((hit: any) => hit._source)))
         .catch(error => {
           console.error(error)
           setSearchResults([])

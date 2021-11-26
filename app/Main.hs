@@ -2,6 +2,7 @@
 
 module Main where
 
+import Control.Lens (ifor_)
 import qualified Data.Aeson as Aeson
 import qualified Data.String as String
 import Network.Wai.Handler.Warp (defaultSettings, runSettings, setLogger, setPort)
@@ -12,6 +13,7 @@ import Relude hiding (id)
 import qualified Relude.Unsafe as Unsafe
 import Servant.Server (serve)
 import Sisku
+import System.IO (hPutStrLn)
 
 opts :: Parser (IO ())
 opts =
@@ -20,6 +22,7 @@ opts =
       <> command "index-lsp" (info (indexLspCommand <$> indexLspOpts) (progDesc "Make a index via LSP."))
       <> command "server" (info (serverCommand <$> serverOpts) (progDesc "Start the Sisku server."))
       <> command "search" (info (searchCommand <$> searchOpts) (progDesc "CLI interface"))
+      <> command "gen-elastic-index" (info (genElasticIndexCommand <$> genElasticIndexOpts) (progDesc "Generate the JSONL file for Elasticsearch"))
 
 data IndexLsifOptions = IndexLsifOptions
   { lsifFilePath :: FilePath,
@@ -93,9 +96,32 @@ searchCommand SearchOptions {..} = do
     Nothing -> error "Fail to load the hovercraft file."
 
 searchOpts :: Parser SearchOptions
-searchOpts = SearchOptions
+searchOpts =
+  SearchOptions
     <$> strOption (short 'i' <> long "input" <> metavar "<file>" <> help "Hovercraft index file" <> value "hovercraft.json")
     <*> strArgument (metavar "<query>" <> help "Search by <query>")
+
+data GenElasticIndexOptions = GenElasticIndexOptions
+  { elasticHovercraftFilePath :: FilePath,
+    elasticIndexFilePath :: FilePath
+  }
+
+genElasticIndexCommand :: GenElasticIndexOptions -> IO ()
+genElasticIndexCommand GenElasticIndexOptions {..} = do
+  hovercrafts :: Maybe [Hovercraft] <- Aeson.decodeFileStrict elasticHovercraftFilePath
+  case hovercrafts of
+    Just hovercrafts ->
+      withFile elasticIndexFilePath WriteMode $ \handle ->
+        ifor_ hovercrafts \i hover -> do
+          hPutStrLn handle $ "{ \"index\": {\"_index\": \"hovercraft\", \"_id\": \"" <> show i <> "\" } }"
+          hPutStrLn handle $ decodeUtf8 $ Aeson.encode hover
+    Nothing -> error "Fail to load the hovercraft file."
+
+genElasticIndexOpts :: Parser GenElasticIndexOptions
+genElasticIndexOpts =
+  GenElasticIndexOptions
+    <$> strOption (short 'i' <> long "input" <> metavar "<file>" <> help "Hovercraft index file" <> value "hovercraft.json")
+    <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "index.jsonl")
 
 main :: IO ()
 main = join $ execParser (info (opts <**> helper) (fullDesc <> header "Sisku - Polyglot API Search Engine"))
