@@ -10,6 +10,7 @@ import Data.Aeson.Lens
 import Data.Graph.Inductive (Gr, Graph (labNodes), Node, lab, mkGraph, pre, suc)
 import qualified Data.Text as Text
 import Flow ((|>))
+import Hovercraft
 import Language.LSP.Test
 import Language.LSP.Types
 import Language.LSP.Types.Lens
@@ -26,16 +27,6 @@ import Servant.Server
 import System.Directory.Extra (listFilesRecursive)
 import System.FilePath (isExtensionOf, makeRelative)
 import System.Process
-
--- | Hover document and definition information
-data Hovercraft = Hovercraft
-  { hover :: Hover,
-    definitions :: [Location |? LocationLink],
-    moniker :: Value
-  }
-  deriving stock (Show, Generic)
-
-instance ToJSON Hovercraft
 
 -- | LSIF Graph
 newtype Index = Index
@@ -70,7 +61,7 @@ valuesToIndex vs = Index {graph = mkGraph nodes edges}
 indexToHovercraft :: Index -> [Hovercraft]
 indexToHovercraft Index {graph = gr} =
   map ?? hoverResults $ \hoverResult ->
-    executingState Hovercraft {hover = nodeToHover hoverResult, definitions = [], moniker = Null} do
+    executingState Hovercraft {_hover = nodeToHover hoverResult, _definitions = [], _moniker = Null} do
       traverse_ goResult (concatMap results (pre gr hoverResult))
   where
     getValue x = fromMaybe Null $ lab gr x
@@ -101,9 +92,9 @@ indexToHovercraft Index {graph = gr} =
     goResult r =
       case getValue r ^? key "label" of
         Just (String "definitionResult") -> do
-          modify $ \x -> x {definitions = definitions x <> defLoc r}
+          modify $ \x -> x {_definitions = _definitions x <> defLoc r}
         Just (String "moniker") -> do
-          modify $ \x -> x {moniker = getValue r}
+          modify $ \x -> x {_moniker = getValue r}
         _ -> pure ()
 
 -- * Build hovercrafts via LSP
@@ -114,7 +105,7 @@ buildHovercraft path ext cmd args = do
   (Just hin, Just hout, _, _) <- createProcess (proc cmd args) {std_in = CreatePipe, std_out = CreatePipe}
   hSetBuffering hin NoBuffering
   hSetBuffering hout NoBuffering
-  let config = defaultConfig { messageTimeout = 120 }
+  let config = defaultConfig {messageTimeout = 120}
   runSessionWithHandles hin hout config fullCaps path $ do
     fmap concat $
       traverse ?? files $ \file -> do
@@ -138,16 +129,16 @@ buildHovercraft path ext cmd args = do
         (Just hover, Nothing) ->
           pure
             [ Hovercraft
-                { hover = hover,
-                  definitions = uncozip definitions,
-                  moniker = Null
+                { _hover = hover,
+                  _definitions = uncozip definitions,
+                  _moniker = Null
                 }
             ]
         (Just hover, Just (List cs)) ->
           ( Hovercraft
-              { hover = hover,
-                definitions = uncozip definitions,
-                moniker = Null
+              { _hover = hover,
+                _definitions = uncozip definitions,
+                _moniker = Null
               }
               :
           )
@@ -172,9 +163,9 @@ searchServer hovercrafts = allListHandler :<|> searchHandler
     searchHandler (Just query) = return (filter (filterByQuery $ toText query) hovercrafts)
 
 filterByQuery :: Text -> Hovercraft -> Bool
-filterByQuery q Hovercraft {..}
+filterByQuery q Hovercraft {_hover}
   | Text.null q = True
-  | otherwise = hover ^. contents |> hoverContentsToString |> Text.isInfixOf q
+  | otherwise = _hover ^. contents |> hoverContentsToString |> Text.isInfixOf q
   where
     hoverContentsToString (HoverContents markedContent) = markedContent ^. value
     hoverContentsToString _ = error "not implemented"
