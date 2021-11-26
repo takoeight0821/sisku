@@ -114,7 +114,8 @@ buildHovercraft path ext cmd args = do
   (Just hin, Just hout, _, _) <- createProcess (proc cmd args) {std_in = CreatePipe, std_out = CreatePipe}
   hSetBuffering hin NoBuffering
   hSetBuffering hout NoBuffering
-  runSessionWithHandles hin hout defaultConfig fullCaps path $ do
+  let config = defaultConfig { messageTimeout = 120 }
+  runSessionWithHandles hin hout config fullCaps path $ do
     fmap concat $
       traverse ?? files $ \file -> do
         doc <- openDoc (makeRelative path file) "haskell"
