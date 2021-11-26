@@ -3,6 +3,6 @@ cradle:
     - path: "src"
       component: "lib:sisku"
     - path: "app"
-      component: "sisku:exe:sisku-exe"
+      component: "sisku:exe:sisku"
     - path: "test"
       component: "sisku:test:sisku-test"

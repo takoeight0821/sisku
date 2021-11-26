@@ -108,7 +108,7 @@ library:
   source-dirs: src
 
 executables:
-  sisku-exe:
+  sisku:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
