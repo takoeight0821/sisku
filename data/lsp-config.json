@@ -1,0 +1,5 @@
+{
+  "command": "haskell-language-server-wrapper --lsp",
+  "rootPath": "src/",
+  "extension": "hs"
+}

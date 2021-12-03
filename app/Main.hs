@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Lens (ifor_)
+import Data.Aeson (FromJSON, ToJSON)
 import qualified Data.Aeson as Aeson
 import qualified Data.String as String
 import Network.Wai.Handler.Warp (defaultSettings, runSettings, setLogger, setPort)
@@ -41,24 +42,49 @@ indexLsifOpts =
     <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "hovercraft.json")
 
 data IndexLspOptions = IndexLspOptions
-  { lspFilePath :: FilePath,
-    lspExtension :: String,
-    lspCommand :: String,
+  { lspConfigFilePath :: FilePath,
     lspHovercraftFilePath :: FilePath
   }
 
+data LspConfig = LspConfig
+  { lspConfigCommand :: FilePath,
+    lspConfigRootPath :: FilePath,
+    lspConfigExtension :: String
+  }
+
+instance ToJSON LspConfig where
+  toJSON LspConfig {lspConfigCommand, lspConfigRootPath, lspConfigExtension} =
+    Aeson.object
+      [ "command" Aeson..= lspConfigCommand,
+        "rootPath" Aeson..= lspConfigRootPath,
+        "extension" Aeson..= lspConfigExtension
+      ]
+
+instance FromJSON LspConfig where
+  parseJSON = Aeson.withObject "LspConfig" $ \o ->
+    LspConfig
+      <$> o Aeson..: "command"
+      <*> o Aeson..: "rootPath"
+      <*> o Aeson..: "extension"
+
 indexLspCommand :: IndexLspOptions -> IO ()
 indexLspCommand IndexLspOptions {..} = do
-  let command = String.words lspCommand
-  hovercrafts <- buildHovercraft lspFilePath lspExtension (Unsafe.head command) (Unsafe.tail command)
+  LspConfig {..} <- loadLspConfigFromFile lspConfigFilePath
+  let command = String.words lspConfigCommand
+  hovercrafts <- buildHovercraft lspConfigRootPath lspConfigExtension (Unsafe.head command) (Unsafe.tail command)
   Aeson.encodeFile lspHovercraftFilePath hovercrafts
+  where
+    loadLspConfigFromFile :: FilePath -> IO LspConfig
+    loadLspConfigFromFile filePath = do
+      contents <- readFileLBS filePath
+      case Aeson.eitherDecode contents of
+        Left err -> error (toText err)
+        Right config -> pure config
 
 indexLspOpts :: Parser IndexLspOptions
 indexLspOpts =
   IndexLspOptions
-    <$> strArgument (metavar "<project root>")
-    <*> strArgument (metavar "<ext>" <> help "Extension for program files (e.g. 'c', 'py', 'hs')")
-    <*> strArgument (metavar "<lsp command>")
+    <$> strOption (short 'c' <> long "config" <> metavar "<lsp config>" <> help "Path to the LSP config file" <> value "lsp-config.json")
     <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "hovercraft.json")
 
 data ServerOptions = ServerOptions
