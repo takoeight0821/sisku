@@ -1,33 +1,25 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Sisku (loadLsifFromFile, indexToHovercraft, LspConfig (..), buildHovercraft, Hovercraft (..), SearchApi, searchServer, filterByQuery) where
+module Sisku (loadLsifFromFile, indexToHovercraft, LspConfig (..), buildHovercraft, Hovercraft (..)) where
 
-import Control.Applicative.Combinators (skipMany, skipManyTill)
 import Control.Lens (view, (^.))
 import Data.Aeson
 import qualified Data.Aeson as Aeson
-import qualified Data.Text as Text
 import Data.Traversable (for)
-import Flow ((|>))
 import Hovercraft
 import Language.LSP.Test
 import Language.LSP.Types
 import Language.LSP.Types.Lens
   ( HasChildren (children),
-    HasContents (contents),
     HasLocation (location),
     HasRange (range),
     HasSelectionRange (selectionRange),
     HasStart (start),
-    HasValue (value),
   )
 import Lsif
 import Relude
-import Servant.API
-import Servant.Server
-import System.Directory.Extra (listFilesRecursive)
-import System.FilePath (isExtensionOf, makeRelative)
+import System.FilePath (makeRelative)
 import System.FilePath.Glob (glob)
 import System.Process
   ( CreateProcess (std_in, std_out),
@@ -136,27 +128,3 @@ buildHovercraft LspConfig {..} = do
             ]
     uncozip (InL xs) = map InL xs
     uncozip (InR xs) = map InR xs
-
--- * Server
-
-type SearchApi =
-  "all-list" :> Get '[JSON] [Hovercraft]
-    :<|> "search" :> QueryParam "q" String :> Get '[JSON] [Hovercraft]
-
-searchServer :: [Hovercraft] -> Server SearchApi
-searchServer hovercrafts = allListHandler :<|> searchHandler
-  where
-    allListHandler :: Handler [Hovercraft]
-    allListHandler = return hovercrafts
-
-    searchHandler :: Maybe String -> Handler [Hovercraft]
-    searchHandler Nothing = return []
-    searchHandler (Just query) = return (filter (filterByQuery $ toText query) hovercrafts)
-
-filterByQuery :: Text -> Hovercraft -> Bool
-filterByQuery q Hovercraft {_hover}
-  | Text.null q = True
-  | otherwise = _hover ^. contents |> hoverContentsToString |> Text.isInfixOf q
-  where
-    hoverContentsToString (HoverContents markedContent) = markedContent ^. value
-    hoverContentsToString _ = error "not implemented"
