@@ -77,7 +77,8 @@ library
       StrictData
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies
   build-depends:
-      aeson
+      Glob
+    , aeson
     , async
     , base >=4.7 && <5
     , constraints-extras ==0.3.0.2
@@ -158,7 +159,8 @@ executable sisku
       StrictData
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      Glob
+    , aeson
     , async
     , base >=4.7 && <5
     , constraints-extras ==0.3.0.2
@@ -241,7 +243,8 @@ test-suite sisku-test
       StrictData
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      Glob
+    , aeson
     , async
     , base >=4.7 && <5
     , constraints-extras ==0.3.0.2

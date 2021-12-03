@@ -28,6 +28,7 @@ dependencies:
 - fgl
 - filepath
 - flow
+- Glob
 - lens
 - lens-aeson
 - lsp-test

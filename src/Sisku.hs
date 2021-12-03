@@ -4,7 +4,7 @@
 module Sisku (loadLsifFromFile, indexToHovercraft, LspConfig (..), buildHovercraft, Hovercraft (..), SearchApi, searchServer, filterByQuery) where
 
 import Control.Applicative.Combinators (skipMany, skipManyTill)
-import Control.Lens ((^.))
+import Control.Lens (view, (^.))
 import Data.Aeson
 import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
@@ -16,6 +16,8 @@ import Language.LSP.Types
 import Language.LSP.Types.Lens
   ( HasChildren (children),
     HasContents (contents),
+    HasLocation (location),
+    HasRange (range),
     HasSelectionRange (selectionRange),
     HasStart (start),
     HasValue (value),
@@ -26,6 +28,7 @@ import Servant.API
 import Servant.Server
 import System.Directory.Extra (listFilesRecursive)
 import System.FilePath (isExtensionOf, makeRelative)
+import System.FilePath.Glob (glob)
 import System.Process
   ( CreateProcess (std_in, std_out),
     StdStream (CreatePipe),
@@ -35,17 +38,18 @@ import System.Process
 
 data LspConfig = LspConfig
   { lspConfigCommand :: FilePath,
+    lspConfigSourceFilePatterns :: [String],
     lspConfigRootPath :: FilePath,
-    lspConfigExtension :: String,
+    -- lspConfigExtension :: String,
     lspConfigLanguage :: Text
   }
 
 instance ToJSON LspConfig where
-  toJSON LspConfig {lspConfigCommand, lspConfigRootPath, lspConfigExtension, lspConfigLanguage} =
+  toJSON LspConfig {..} =
     Aeson.object
       [ "command" Aeson..= lspConfigCommand,
+        "sourceFilePatterns" Aeson..= lspConfigSourceFilePatterns,
         "rootPath" Aeson..= lspConfigRootPath,
-        "extension" Aeson..= lspConfigExtension,
         "language" Aeson..= lspConfigLanguage
       ]
 
@@ -53,15 +57,15 @@ instance FromJSON LspConfig where
   parseJSON = Aeson.withObject "LspConfig" $ \o ->
     LspConfig
       <$> o Aeson..: "command"
+      <*> o Aeson..: "sourceFilePatterns"
       <*> o Aeson..: "rootPath"
-      <*> o Aeson..: "extension"
       <*> o Aeson..: "language"
 
 -- * Build hovercrafts via LSP
 
 buildHovercraft :: LspConfig -> IO [Hovercraft]
 buildHovercraft LspConfig {..} = do
-  files <- filter (lspConfigExtension `isExtensionOf`) <$> listFilesRecursive lspConfigRootPath
+  files <- concat <$> traverse glob lspConfigSourceFilePatterns
   (Just hin, Just hout, _, _) <- createProcess (shell lspConfigCommand) {std_in = CreatePipe, std_out = CreatePipe}
   hSetBuffering hin NoBuffering
   hSetBuffering hout NoBuffering
@@ -84,14 +88,16 @@ buildHovercraft LspConfig {..} = do
         else void waitForDiagnostics
       hovercrafts <-
         getDocumentSymbols doc >>= \case
-          Right _ -> error "not implemented"
+          Right symbolInformations -> collectAllHovers' doc (map (view location) symbolInformations)
           Left docSymbols -> collectAllHovers doc docSymbols
       closeDoc doc
       pure hovercrafts
 
     collectAllHovers doc docSymbols = concat <$> traverse (collectHover doc) docSymbols
+    collectAllHovers' doc docSymbols = concat <$> traverse (collectHover' doc) docSymbols
     collectHover doc docSymbol = do
       let pos = docSymbol ^. selectionRange . start
+      -- let pos = docSymbol ^. range . start
       hover <- getHover doc pos
       definitions <- getDefinitions doc pos
       case (hover, docSymbol ^. children) of
@@ -114,6 +120,20 @@ buildHovercraft LspConfig {..} = do
               :
           )
             <$> collectAllHovers doc cs
+    collectHover' doc docSymbol = do
+      let pos = docSymbol ^. range . start
+      hover <- getHover doc pos
+      definitions <- getDefinitions doc pos
+      case hover of
+        Nothing -> pure []
+        Just hover ->
+          pure
+            [ Hovercraft
+                { _hover = hover,
+                  _definitions = uncozip definitions,
+                  _moniker = Null
+                }
+            ]
     uncozip (InL xs) = map InL xs
     uncozip (InR xs) = map InR xs
 
