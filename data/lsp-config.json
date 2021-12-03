@@ -1,5 +1,6 @@
 {
-  "command": "haskell-language-server-wrapper --lsp",
+  "command": "haskell-language-server-wrapper --lsp --debug",
   "rootPath": "src/",
-  "extension": "hs"
+  "extension": "hs",
+  "language": "haskell"
 }

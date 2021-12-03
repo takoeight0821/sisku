@@ -46,32 +46,10 @@ data IndexLspOptions = IndexLspOptions
     lspHovercraftFilePath :: FilePath
   }
 
-data LspConfig = LspConfig
-  { lspConfigCommand :: FilePath,
-    lspConfigRootPath :: FilePath,
-    lspConfigExtension :: String
-  }
-
-instance ToJSON LspConfig where
-  toJSON LspConfig {lspConfigCommand, lspConfigRootPath, lspConfigExtension} =
-    Aeson.object
-      [ "command" Aeson..= lspConfigCommand,
-        "rootPath" Aeson..= lspConfigRootPath,
-        "extension" Aeson..= lspConfigExtension
-      ]
-
-instance FromJSON LspConfig where
-  parseJSON = Aeson.withObject "LspConfig" $ \o ->
-    LspConfig
-      <$> o Aeson..: "command"
-      <*> o Aeson..: "rootPath"
-      <*> o Aeson..: "extension"
-
 indexLspCommand :: IndexLspOptions -> IO ()
 indexLspCommand IndexLspOptions {..} = do
-  LspConfig {..} <- loadLspConfigFromFile lspConfigFilePath
-  let command = String.words lspConfigCommand
-  hovercrafts <- buildHovercraft lspConfigRootPath lspConfigExtension (Unsafe.head command) (Unsafe.tail command)
+  lspConfig <- loadLspConfigFromFile lspConfigFilePath
+  hovercrafts <- buildHovercraft lspConfig
   Aeson.encodeFile lspHovercraftFilePath hovercrafts
   where
     loadLspConfigFromFile :: FilePath -> IO LspConfig

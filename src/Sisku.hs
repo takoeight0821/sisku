@@ -1,12 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Sisku (loadLsifFromFile, indexToHovercraft, buildHovercraft, Hovercraft (..), SearchApi, searchServer, filterByQuery) where
+module Sisku (loadLsifFromFile, indexToHovercraft, LspConfig (..), buildHovercraft, Hovercraft (..), SearchApi, searchServer, filterByQuery) where
 
-import Control.Applicative.Combinators
+import Control.Applicative.Combinators (skipMany, skipManyTill)
 import Control.Lens ((^.))
 import Data.Aeson
+import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
+import Data.Traversable (for)
 import Flow ((|>))
 import Hovercraft
 import Language.LSP.Test
@@ -25,28 +27,68 @@ import Servant.Server
 import System.Directory.Extra (listFilesRecursive)
 import System.FilePath (isExtensionOf, makeRelative)
 import System.Process
+  ( CreateProcess (std_in, std_out),
+    StdStream (CreatePipe),
+    createProcess,
+    shell,
+  )
+
+data LspConfig = LspConfig
+  { lspConfigCommand :: FilePath,
+    lspConfigRootPath :: FilePath,
+    lspConfigExtension :: String,
+    lspConfigLanguage :: Text
+  }
+
+instance ToJSON LspConfig where
+  toJSON LspConfig {lspConfigCommand, lspConfigRootPath, lspConfigExtension, lspConfigLanguage} =
+    Aeson.object
+      [ "command" Aeson..= lspConfigCommand,
+        "rootPath" Aeson..= lspConfigRootPath,
+        "extension" Aeson..= lspConfigExtension,
+        "language" Aeson..= lspConfigLanguage
+      ]
+
+instance FromJSON LspConfig where
+  parseJSON = Aeson.withObject "LspConfig" $ \o ->
+    LspConfig
+      <$> o Aeson..: "command"
+      <*> o Aeson..: "rootPath"
+      <*> o Aeson..: "extension"
+      <*> o Aeson..: "language"
 
 -- * Build hovercrafts via LSP
 
-buildHovercraft :: FilePath -> String -> String -> [String] -> IO [Hovercraft]
-buildHovercraft path ext cmd args = do
-  files <- filter (ext `isExtensionOf`) <$> listFilesRecursive path
-  (Just hin, Just hout, _, _) <- createProcess (proc cmd args) {std_in = CreatePipe, std_out = CreatePipe}
+buildHovercraft :: LspConfig -> IO [Hovercraft]
+buildHovercraft LspConfig {..} = do
+  files <- filter (lspConfigExtension `isExtensionOf`) <$> listFilesRecursive lspConfigRootPath
+  (Just hin, Just hout, _, _) <- createProcess (shell lspConfigCommand) {std_in = CreatePipe, std_out = CreatePipe}
   hSetBuffering hin NoBuffering
   hSetBuffering hout NoBuffering
-  let config = defaultConfig {messageTimeout = 120}
-  runSessionWithHandles hin hout config fullCaps path $ do
-    fmap concat $
-      traverse ?? files $ \file -> do
-        doc <- openDoc (makeRelative path file) "haskell"
-        skipMany anyNotification
-        hovercrafts <-
-          getDocumentSymbols doc >>= \case
-            Right _ -> error "not implemented"
-            Left docSymbols -> collectAllHovers doc docSymbols
-        closeDoc doc
-        pure hovercrafts
+  let config = defaultConfig
+  hovercrafts <-
+    runSessionWithHandles hin hout config fullCaps lspConfigRootPath $ do
+      for files seekFile
+  pure $ concat hovercrafts
   where
+    seekFile :: FilePath -> Session [Hovercraft]
+    seekFile file = do
+      traceM $ "Seeking " <> show file
+      doc <- openDoc (makeRelative lspConfigRootPath file) lspConfigLanguage
+      traceM $ "Opened " <> show file
+      -- wait until the server is ready
+      traceM "Wait for diagnostics"
+      -- TODO: This is a hack, we should make clear why we need to wait for diagnostics and haskell-language-server stops working.
+      if lspConfigLanguage == "haskell"
+        then pure () -- haskell-language-server hang up when we call waitForDiagnostics
+        else void waitForDiagnostics
+      hovercrafts <-
+        getDocumentSymbols doc >>= \case
+          Right _ -> error "not implemented"
+          Left docSymbols -> collectAllHovers doc docSymbols
+      closeDoc doc
+      pure hovercrafts
+
     collectAllHovers doc docSymbols = concat <$> traverse (collectHover doc) docSymbols
     collectHover doc docSymbol = do
       let pos = docSymbol ^. selectionRange . start
