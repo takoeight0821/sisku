@@ -3,8 +3,9 @@
 
 module Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
 
-import Colog (LoggerT, Message, logDebug, usingLoggerT)
+import Colog (LoggerT, Message, logDebug, logError, logInfo, usingLoggerT)
 import Colog.Actions (richMessageAction)
+import Control.Exception (catch)
 import Control.Lens hiding (List, children, (.=), (??))
 import Data.Aeson
 import qualified Data.HashMap.Strict as HashMap
@@ -18,7 +19,7 @@ import Relude
 import System.Directory.Extra (doesFileExist, makeAbsolute)
 import System.FilePath
 import System.FilePath.Glob
-import System.Process
+import System.Time.Extra (sleep)
 
 data BuildEnv = BuildEnv
   { buildEnvCommand :: FilePath,
@@ -49,26 +50,25 @@ instance FromJSON BuildEnv where
 buildHovercraft :: BuildEnv -> IO [Hovercraft]
 buildHovercraft BuildEnv {..} = do
   files <- concat <$> traverse glob buildEnvSourceFilePatterns
-  (Just hin, Just hout, _, _) <- createProcess (shell buildEnvCommand) {std_in = CreatePipe, std_out = CreatePipe}
-  hSetBuffering hin NoBuffering
-  hSetBuffering hout NoBuffering
   let config = defaultConfig
-  hovercrafts <-
-    runSessionWithHandles hin hout config fullCaps buildEnvRootPath $ do
-      usingLoggerT richMessageAction $ for files seekFile
+  hovercrafts <- for files $ seekFile config 0
   pure $ concat hovercrafts
   where
-    seekFile :: FilePath -> LoggerT Message Session [Hovercraft]
-    seekFile file = do
+    seekFile config waitSec file
+      | waitSec <= 10 =
+        runSessionWithConfig config buildEnvCommand fullCaps buildEnvRootPath (usingLoggerT richMessageAction $ seekFile' waitSec file)
+          `catch` \(e :: SessionException) -> do
+            usingLoggerT richMessageAction $ logError $ "session error: " <> show e
+            seekFile config (waitSec + 1) file
+      | otherwise = error $ "Cannot connect to LSP server: " <> show file
+    seekFile' :: Double -> FilePath -> LoggerT Message Session [Hovercraft]
+    seekFile' waitSec file = do
       logDebug $ toText $ "Seeking file " <> file
       doc <- lift $ openDoc (makeRelative buildEnvRootPath file) buildEnvLanguage
       logDebug $ toText $ "Opened " <> file
       -- wait until the server is ready
-      logDebug "Waiting for diagnostics"
-      -- TODO: This is a hack, we should make clear why we need to wait for diagnostics and haskell-language-server stops working.
-      if buildEnvLanguage == "haskell"
-        then pure () -- haskell-language-server hang up when we call waitForDiagnostics
-        else void $ lift waitForDiagnostics
+      logInfo $ "waiting " <> show waitSec <> " seconds before requesting hover"
+      liftIO $ sleep waitSec
       hovercrafts <-
         lift $
           getDocumentSymbols doc >>= \case
