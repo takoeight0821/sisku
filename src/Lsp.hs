@@ -3,6 +3,8 @@
 
 module Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
 
+import Colog (LoggerT, Message, logDebug, usingLoggerT)
+import Colog.Actions (richMessageAction)
 import Control.Lens hiding (List, children, (.=), (??))
 import Data.Aeson
 import qualified Data.HashMap.Strict as HashMap
@@ -10,7 +12,7 @@ import qualified Data.Map as Map
 import Data.Traversable
 import Hovercraft
 import Language.LSP.Test
-import Language.LSP.Types
+import Language.LSP.Types hiding (Message)
 import Language.LSP.Types.Lens hiding (to)
 import Relude
 import System.Directory.Extra (doesFileExist, makeAbsolute)
@@ -53,25 +55,26 @@ buildHovercraft BuildEnv {..} = do
   let config = defaultConfig
   hovercrafts <-
     runSessionWithHandles hin hout config fullCaps buildEnvRootPath $ do
-      for files seekFile
+      usingLoggerT richMessageAction $ for files seekFile
   pure $ concat hovercrafts
   where
-    seekFile :: FilePath -> Session [Hovercraft]
+    seekFile :: FilePath -> LoggerT Message Session [Hovercraft]
     seekFile file = do
-      traceM $ "Seeking " <> show file
-      doc <- openDoc (makeRelative buildEnvRootPath file) buildEnvLanguage
-      traceM $ "Opened " <> show file
+      logDebug $ toText $ "Seeking file " <> file
+      doc <- lift $ openDoc (makeRelative buildEnvRootPath file) buildEnvLanguage
+      logDebug $ toText $ "Opened " <> file
       -- wait until the server is ready
-      traceM "Wait for diagnostics"
+      logDebug "Waiting for diagnostics"
       -- TODO: This is a hack, we should make clear why we need to wait for diagnostics and haskell-language-server stops working.
       if buildEnvLanguage == "haskell"
         then pure () -- haskell-language-server hang up when we call waitForDiagnostics
-        else void waitForDiagnostics
+        else void $ lift waitForDiagnostics
       hovercrafts <-
-        getDocumentSymbols doc >>= \case
-          Right symbolInformations -> collectAllHovers' doc (map (view location) symbolInformations)
-          Left docSymbols -> collectAllHovers doc docSymbols
-      closeDoc doc
+        lift $
+          getDocumentSymbols doc >>= \case
+            Right symbolInformations -> collectAllHovers' doc (map (view location) symbolInformations)
+            Left docSymbols -> collectAllHovers doc docSymbols
+      lift $ closeDoc doc
       pure hovercrafts
 
     collectAllHovers doc docSymbols = concat <$> traverse (collectHover doc) docSymbols
@@ -137,8 +140,6 @@ data LspSetting = LspSetting
   }
   deriving stock (Show, Eq, Ord, Generic)
 
-makeLenses ''LspSetting
-
 instance ToJSON LspSetting where
   toJSON LspSetting {..} =
     object
@@ -158,46 +159,46 @@ instance FromJSON LspSetting where
 
 -- | Generate a `BuildEnv` from the given file path.
 generateBuildEnv :: LspSettings -> FilePath -> IO BuildEnv
-generateBuildEnv lspSettings filePath = usingReaderT lspSettings $ do
-  filePath <- liftIO $ makeAbsolute filePath
-  language <- detectLanguage filePath
-  rootPath <- searchRootPath language filePath
-  let sourceFilePatterns = [rootPath <> "/**/*" <> takeExtension filePath]
-  command <- getCommand language
-  pure
-    BuildEnv
-      { buildEnvCommand = command,
-        buildEnvSourceFilePatterns = sourceFilePatterns,
-        buildEnvRootPath = rootPath,
-        buildEnvLanguage = language
-      }
+generateBuildEnv lspSettings filePath = usingReaderT lspSettings $
+  usingLoggerT richMessageAction $ do
+    filePath <- liftIO $ makeAbsolute filePath
+    language <- detectLanguage filePath
+    rootPath <- lift $ searchRootPath language filePath
+    let sourceFilePatterns = [rootPath <> "/**/*" <> takeExtension filePath]
+    command <- lift $ getCommand language
+    pure
+      BuildEnv
+        { buildEnvCommand = command,
+          buildEnvSourceFilePatterns = sourceFilePatterns,
+          buildEnvRootPath = rootPath,
+          buildEnvLanguage = language
+        }
 
 -- | Detect what programming language the given file is written in.
-detectLanguage :: FilePath -> ReaderT LspSettings IO Text
+detectLanguage :: MonadReader LspSettings m => FilePath -> LoggerT Message m Text
 detectLanguage filePath = do
-  traceM $ "Detecting language for " <> show filePath
+  logDebug $ toText $ "Detecting language for " <> filePath
   let ext = toText $ takeExtension filePath
-  traceM $ "Looking for language for extension " <> show ext
-  lspSettings <- Map.elems <$> asks unwrapLspSettings
-  traceM $ "LspSettings: " <> show lspSettings
+  logDebug $ "Looking for language for extension " <> ext
+  lspSettings <- Map.elems <$> lift (asks unwrapLspSettings)
+  logDebug $ "LspSettings: " <> show lspSettings
   let matches = mapMaybe ?? lspSettings $ \LspSetting {_lspSettingLanguage = language, _lspSettingExtensions = extensions} ->
         if ext `elem` extensions
           then Just language
           else Nothing
-  traceM $ "Detected language: " <> show matches
+  logDebug $ "Detected language: " <> show matches
   case matches of
     [] -> error $ "Could not detect language for " <> show filePath
     [language] -> pure language
     _ -> error $ "Multiple languages detected for " <> show filePath <> "\nTODO: Implement language detection when multiple languages are detected"
 
 -- | Get the root path of the given file.
-searchRootPath :: Text -> FilePath -> ReaderT LspSettings IO FilePath
+searchRootPath :: (MonadIO m, MonadReader LspSettings m) => Text -> FilePath -> m String
 searchRootPath language filePath = do
   lspSetting <- fromMaybe (error $ "Language " <> show language <> " not found") . view (at language) <$> asks unwrapLspSettings
   let rootPathPatterns = _lspSettingRootUriPatterns lspSetting
   findRootPath rootPathPatterns [takeDirectory filePath]
   where
-    findRootPath :: [Text] -> [FilePath] -> ReaderT LspSettings IO FilePath
     findRootPath _ [] = error $ "Could not find root path for " <> show filePath
     findRootPath rootPathPatterns (path : paths) = do
       isRootPath <- anyM (\rootPathPattern -> liftIO $ doesFileExist $ path <> "/" <> toString rootPathPattern) rootPathPatterns
@@ -208,7 +209,7 @@ searchRootPath language filePath = do
           _ -> paths
 
 -- | Get the command to run the Language Server.
-getCommand :: Text -> ReaderT LspSettings IO FilePath
+getCommand :: MonadReader LspSettings m => Text -> m String
 getCommand language = do
   lspSetting <- view (to unwrapLspSettings . at language)
   case lspSetting of
