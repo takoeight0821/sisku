@@ -23,6 +23,8 @@ dependencies:
 - aeson
 - async
 - base >= 4.7 && < 5
+- containers
+- unordered-containers
 - extra
 - exceptions
 - fgl

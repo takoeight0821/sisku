@@ -27,6 +27,7 @@ library
   exposed-modules:
       Hovercraft
       Lsif
+      Lsp
       Sisku
   other-modules:
       Paths_sisku
@@ -82,6 +83,7 @@ library
     , async
     , base >=4.7 && <5
     , constraints-extras ==0.3.0.2
+    , containers
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
@@ -102,6 +104,7 @@ library
     , servant
     , servant-server
     , text
+    , unordered-containers
     , wai
     , wai-cors
     , wai-logger
@@ -164,6 +167,7 @@ executable sisku
     , async
     , base >=4.7 && <5
     , constraints-extras ==0.3.0.2
+    , containers
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
@@ -185,6 +189,7 @@ executable sisku
     , servant-server
     , sisku
     , text
+    , unordered-containers
     , wai
     , wai-cors
     , wai-logger
@@ -248,6 +253,7 @@ test-suite sisku-test
     , async
     , base >=4.7 && <5
     , constraints-extras ==0.3.0.2
+    , containers
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
@@ -269,6 +275,7 @@ test-suite sisku-test
     , servant-server
     , sisku
     , text
+    , unordered-containers
     , wai
     , wai-cors
     , wai-logger

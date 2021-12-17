@@ -39,12 +39,12 @@ data IndexLspOptions = IndexLspOptions
 
 indexLspCommand :: IndexLspOptions -> IO ()
 indexLspCommand IndexLspOptions {..} = do
-  lspConfig <- loadLspConfigFromFile lspConfigFilePath
+  lspConfig <- loadBuildEnvFromFile lspConfigFilePath
   hovercrafts <- buildHovercraft lspConfig
   Aeson.encodeFile lspHovercraftFilePath hovercrafts
   where
-    loadLspConfigFromFile :: FilePath -> IO LspConfig
-    loadLspConfigFromFile filePath = do
+    loadBuildEnvFromFile :: FilePath -> IO BuildEnv
+    loadBuildEnvFromFile filePath = do
       contents <- readFileLBS filePath
       case Aeson.eitherDecode contents of
         Left err -> error (toText err)
