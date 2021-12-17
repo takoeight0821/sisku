@@ -97,18 +97,11 @@ library
     , lsp-test
     , lsp-types
     , optparse-applicative
-    , pandoc
     , pretty-simple
     , process
     , relude
-    , servant
-    , servant-server
     , text
     , unordered-containers
-    , wai
-    , wai-cors
-    , wai-logger
-    , warp
   default-language: Haskell2010
 
 executable sisku
@@ -181,19 +174,12 @@ executable sisku
     , lsp-test
     , lsp-types
     , optparse-applicative
-    , pandoc
     , pretty-simple
     , process
     , relude
-    , servant
-    , servant-server
     , sisku
     , text
     , unordered-containers
-    , wai
-    , wai-cors
-    , wai-logger
-    , warp
   default-language: Haskell2010
 
 test-suite sisku-test
@@ -267,17 +253,10 @@ test-suite sisku-test
     , lsp-test
     , lsp-types
     , optparse-applicative
-    , pandoc
     , pretty-simple
     , process
     , relude
-    , servant
-    , servant-server
     , sisku
     , text
     , unordered-containers
-    , wai
-    , wai-cors
-    , wai-logger
-    , warp
   default-language: Haskell2010
