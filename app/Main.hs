@@ -8,12 +8,14 @@ import Options.Applicative
 import Relude hiding (id)
 import Sisku
 import System.IO (hPutStrLn)
+import Lsp
 
 opts :: Parser (IO ())
 opts =
   hsubparser $
     command "index-lsif" (info (indexLsifCommand <$> indexLsifOpts) (progDesc "Make a index via LSIF."))
       <> command "index-lsp" (info (indexLspCommand <$> indexLspOpts) (progDesc "Make a index via LSP."))
+      <> command "new-index-lsp" (info (newIndexLspCommand <$> newIndexLspOpts) (progDesc "Make a index via LSP."))
       <> command "gen-elastic-index" (info (genElasticIndexCommand <$> genElasticIndexOpts) (progDesc "Generate the JSONL file for Elasticsearch"))
 
 data IndexLsifOptions = IndexLsifOptions
@@ -54,6 +56,33 @@ indexLspOpts :: Parser IndexLspOptions
 indexLspOpts =
   IndexLspOptions
     <$> strOption (short 'c' <> long "config" <> metavar "<lsp config>" <> help "Path to the LSP config file" <> value "lsp-config.json")
+    <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "hovercraft.json")
+
+data NewIndexLspOptions = NewIndexLspOptions
+  { nilEntryFilePath :: FilePath,
+    nilLspSettingsFilePath :: FilePath,
+    nilHovercraftFilePath :: FilePath
+  }
+
+newIndexLspCommand :: NewIndexLspOptions -> IO ()
+newIndexLspCommand NewIndexLspOptions {..} = do
+  lspSettings <- loadLspSettingsFromFile nilLspSettingsFilePath
+  buildEnv <- generateBuildEnv lspSettings nilEntryFilePath
+  hovercrafts <- buildHovercraft buildEnv
+  Aeson.encodeFile nilHovercraftFilePath hovercrafts
+  where
+    loadLspSettingsFromFile :: FilePath -> IO LspSettings
+    loadLspSettingsFromFile filePath = do
+      contents <- readFileLBS filePath
+      case Aeson.eitherDecode contents of
+        Left err -> error (toText err)
+        Right config -> pure config
+
+newIndexLspOpts :: Parser NewIndexLspOptions
+newIndexLspOpts =
+  NewIndexLspOptions
+    <$> strArgument (metavar "<entry file>")
+    <*> strOption (short 's' <> long "settings" <> metavar "<lsp settings>" <> help "Path to the LSP settings file" <> value "lsp-settings.json")
     <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "hovercraft.json")
 
 data GenElasticIndexOptions = GenElasticIndexOptions

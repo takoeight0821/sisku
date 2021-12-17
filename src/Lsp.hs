@@ -1,22 +1,22 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Lsp (buildHovercraft, BuildEnv (..)) where
+module Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
 
 import Control.Lens hiding (List, children, (.=), (??))
 import Data.Aeson
+import qualified Data.HashMap.Strict as HashMap
+import qualified Data.Map as Map
 import Data.Traversable
 import Hovercraft
 import Language.LSP.Test
 import Language.LSP.Types
 import Language.LSP.Types.Lens hiding (to)
 import Relude
-import System.Directory.Extra (doesFileExist)
+import System.Directory.Extra (doesFileExist, makeAbsolute)
 import System.FilePath
 import System.FilePath.Glob
 import System.Process
-import qualified Data.Map as Map
-import qualified Data.HashMap.Strict as HashMap
 
 data BuildEnv = BuildEnv
   { buildEnvCommand :: FilePath,
@@ -119,7 +119,7 @@ buildHovercraft BuildEnv {..} = do
 
 -- * LSP helpers
 
-newtype LspSettings = LspSettings { unwrapLspSettings :: Map Text LspSetting }
+newtype LspSettings = LspSettings {unwrapLspSettings :: Map Text LspSetting}
   deriving stock (Show, Eq, Ord, Generic)
 
 instance ToJSON LspSettings where
@@ -159,6 +159,7 @@ instance FromJSON LspSetting where
 -- | Generate a `BuildEnv` from the given file path.
 generateBuildEnv :: LspSettings -> FilePath -> IO BuildEnv
 generateBuildEnv lspSettings filePath = usingReaderT lspSettings $ do
+  filePath <- liftIO $ makeAbsolute filePath
   language <- detectLanguage filePath
   rootPath <- searchRootPath language filePath
   let sourceFilePatterns = [rootPath <> "/**/*" <> takeExtension filePath]
@@ -174,12 +175,16 @@ generateBuildEnv lspSettings filePath = usingReaderT lspSettings $ do
 -- | Detect what programming language the given file is written in.
 detectLanguage :: FilePath -> ReaderT LspSettings IO Text
 detectLanguage filePath = do
+  traceM $ "Detecting language for " <> show filePath
   let ext = toText $ takeExtension filePath
+  traceM $ "Looking for language for extension " <> show ext
   lspSettings <- Map.elems <$> asks unwrapLspSettings
+  traceM $ "LspSettings: " <> show lspSettings
   let matches = mapMaybe ?? lspSettings $ \LspSetting {_lspSettingLanguage = language, _lspSettingExtensions = extensions} ->
         if ext `elem` extensions
           then Just language
           else Nothing
+  traceM $ "Detected language: " <> show matches
   case matches of
     [] -> error $ "Could not detect language for " <> show filePath
     [language] -> pure language
