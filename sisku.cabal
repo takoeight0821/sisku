@@ -29,6 +29,7 @@ library
       Commands.IndexLsif
       Commands.IndexLsp
       Commands.NewIndexLsp
+      Commands.RenderMarkdown
       Hovercraft
       Lsif
       Lsp
