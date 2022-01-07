@@ -25,8 +25,13 @@ source-repository head
 
 library
   exposed-modules:
+      Commands.GenElasticIndex
+      Commands.IndexLsif
+      Commands.IndexLsp
+      Commands.NewIndexLsp
       Hovercraft
       Lsif
+      Lsp
       Sisku
   other-modules:
       Paths_sisku
@@ -81,7 +86,9 @@ library
     , aeson
     , async
     , base >=4.7 && <5
+    , co-log
     , constraints-extras ==0.3.0.2
+    , containers
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
@@ -95,17 +102,12 @@ library
     , lsp-test
     , lsp-types
     , optparse-applicative
-    , pandoc
     , pretty-simple
     , process
     , relude
-    , servant
-    , servant-server
+    , safe-exceptions
     , text
-    , wai
-    , wai-cors
-    , wai-logger
-    , warp
+    , unordered-containers
   default-language: Haskell2010
 
 executable sisku
@@ -163,7 +165,9 @@ executable sisku
     , aeson
     , async
     , base >=4.7 && <5
+    , co-log
     , constraints-extras ==0.3.0.2
+    , containers
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
@@ -177,18 +181,13 @@ executable sisku
     , lsp-test
     , lsp-types
     , optparse-applicative
-    , pandoc
     , pretty-simple
     , process
     , relude
-    , servant
-    , servant-server
+    , safe-exceptions
     , sisku
     , text
-    , wai
-    , wai-cors
-    , wai-logger
-    , warp
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite sisku-test
@@ -247,7 +246,9 @@ test-suite sisku-test
     , aeson
     , async
     , base >=4.7 && <5
+    , co-log
     , constraints-extras ==0.3.0.2
+    , containers
     , dependent-map ==0.4.0.0
     , dependent-sum ==0.7.1.0
     , dependent-sum-template ==0.1.0.3
@@ -261,16 +262,11 @@ test-suite sisku-test
     , lsp-test
     , lsp-types
     , optparse-applicative
-    , pandoc
     , pretty-simple
     , process
     , relude
-    , servant
-    , servant-server
+    , safe-exceptions
     , sisku
     , text
-    , wai
-    , wai-cors
-    , wai-logger
-    , warp
+    , unordered-containers
   default-language: Haskell2010

@@ -23,6 +23,9 @@ dependencies:
 - aeson
 - async
 - base >= 4.7 && < 5
+- containers
+- co-log
+- unordered-containers
 - extra
 - exceptions
 - fgl
@@ -34,17 +37,11 @@ dependencies:
 - lsp-test
 - lsp-types
 - optparse-applicative
-- pandoc
 - pretty-simple
 - process
 - relude
-- servant
-- servant-server
 - text
-- wai
-- wai-cors
-- wai-logger
-- warp
+- safe-exceptions
 # following needed because of https://github.com/alanz/lsp/issues/263
 - constraints-extras == 0.3.0.2
 - dependent-map == 0.4.0.0
