@@ -25,6 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      Commands.GenElasticIndex
+      Commands.IndexLsif
+      Commands.IndexLsp
+      Commands.NewIndexLsp
       Hovercraft
       Lsif
       Lsp
