@@ -12,7 +12,8 @@ import Relude
 data Hovercraft = Hovercraft
   { _hover :: Hover,
     _definitions :: [Location |? LocationLink],
-    _moniker :: Value
+    _moniker :: Value,
+    _rootPath :: FilePath
   }
   deriving stock (Show, Generic)
 
@@ -41,14 +42,16 @@ renderAsMarkdown :: [Hovercraft] -> Text
 renderAsMarkdown hs = unlines $ imap renderSingle hs
 
 renderSingle :: Int -> Hovercraft -> Text
-renderSingle idx Hovercraft {_hover = Hover {_contents = contents}, _definitions} =
+renderSingle idx Hovercraft {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
   unlines
     [ ":::{#label-" <> show idx <> "}",
       "",
       "[🔗](#label-" <> show idx <> ")",
       doc,
       "",
-      "Defined at " <> show _definitions,
+      "Definitions: " <> show _definitions,
+      "",
+      "Root path: " <> toText _rootPath,
       ":::"
     ]
   where
