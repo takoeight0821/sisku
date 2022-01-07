@@ -95,7 +95,7 @@ indexToHovercraft Index {graph = gr} =
     goResult r =
       case getValue r ^? key "label" of
         Just (String "definitionResult") -> do
-          modify $ \x -> x {_definitions = _definitions x <> defLoc r}
+          modify $ \x -> x {_definitions = _definitions x <> map toDefinition (defLoc r)}
         Just (String "moniker") -> do
           modify $ \x -> x {_moniker = getValue r}
         _ -> pure ()

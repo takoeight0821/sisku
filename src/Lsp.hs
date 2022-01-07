@@ -90,7 +90,7 @@ buildHovercraft BuildEnv {..} = do
           pure
             [ Hovercraft
                 { _hover = hover,
-                  _definitions = uncozip definitions,
+                  _definitions = map toDefinition $ uncozip definitions,
                   _moniker = Null,
                   _rootPath = buildEnvRootPath
                 }
@@ -98,7 +98,7 @@ buildHovercraft BuildEnv {..} = do
         (Just hover, Just (List cs)) ->
           ( Hovercraft
               { _hover = hover,
-                _definitions = uncozip definitions,
+                _definitions = map toDefinition $ uncozip definitions,
                 _moniker = Null,
                 _rootPath = buildEnvRootPath
               }
@@ -115,7 +115,7 @@ buildHovercraft BuildEnv {..} = do
           pure
             [ Hovercraft
                 { _hover = hover,
-                  _definitions = uncozip definitions,
+                  _definitions = map toDefinition $ uncozip definitions,
                   _moniker = Null,
                   _rootPath = buildEnvRootPath 
                 }
