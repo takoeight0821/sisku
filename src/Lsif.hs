@@ -3,15 +3,15 @@
 -- | LSIF type definitions
 module Lsif (Index, loadLsifFromFile, indexToHovercraft) where
 
+import Control.Lens ((^?))
 import Data.Aeson
+import Data.Aeson.Lens
+import Data.Graph.Inductive
+import Flow ((|>))
+import Hovercraft
 import Language.LSP.Types
 import Relude
-import Data.Graph.Inductive
 import qualified Relude.Unsafe as Unsafe
-import Hovercraft
-import Control.Lens ((^?))
-import Flow ((|>))
-import Data.Aeson.Lens
 
 -- * LSIF
 
@@ -57,8 +57,15 @@ valuesToIndex vs = Index {graph = mkGraph nodes edges}
 indexToHovercraft :: Index -> [Hovercraft]
 indexToHovercraft Index {graph = gr} =
   map ?? hoverResults $ \hoverResult ->
-    executingState Hovercraft {_hover = nodeToHover hoverResult, _definitions = [], _moniker = Null} do
-      traverse_ goResult (concatMap results (pre gr hoverResult))
+    executingState
+      Hovercraft
+        { _hover = nodeToHover hoverResult,
+          _definitions = [],
+          _moniker = Null,
+          _rootPath = "" -- FIXME: Add root path
+        }
+      do
+        traverse_ goResult (concatMap results (pre gr hoverResult))
   where
     getValue x = fromMaybe Null $ lab gr x
     nodeToHover x = case fromMaybe Null (lab gr x) ^? key "result" of
@@ -88,8 +95,7 @@ indexToHovercraft Index {graph = gr} =
     goResult r =
       case getValue r ^? key "label" of
         Just (String "definitionResult") -> do
-          modify $ \x -> x {_definitions = _definitions x <> defLoc r}
+          modify $ \x -> x {_definitions = _definitions x <> map toDefinition (defLoc r)}
         Just (String "moniker") -> do
           modify $ \x -> x {_moniker = getValue r}
         _ -> pure ()
-

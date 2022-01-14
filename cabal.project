@@ -1,0 +1,4 @@
+packages: *.cabal
+
+package sisku
+  optimization: False
