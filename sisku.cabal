@@ -28,7 +28,6 @@ library
       Commands.GenElasticIndex
       Commands.IndexLsif
       Commands.IndexLsp
-      Commands.NewIndexLsp
       Commands.RenderMarkdown
       Hovercraft
       Lsif
