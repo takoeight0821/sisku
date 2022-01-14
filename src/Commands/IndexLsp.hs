@@ -33,4 +33,4 @@ opts =
     <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "hovercraft.json")
 
 parser :: Mod CommandFields (IO ())
-parser = command "new-index-lsp" (info (cmd <$> opts) (progDesc "Make a index via LSP."))
+parser = command "index-lsp" (info (cmd <$> opts) (progDesc "Make a index via LSP."))
