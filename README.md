@@ -13,7 +13,7 @@ sisku index-lsif dump.lsif -o hovercraft.json
 Generate a Sisku index file from a language server.
 
 ```sh
-sisku index-lsp src hs 'haskell-language-server-wrapper --lsp' -o hovercraft.json
+sisku index-lsp -s lsp-settings.json -o hovercraft.json
 ```
 
 Convert a Sisku index file to JSONL for Elasticsearch Bulk API.

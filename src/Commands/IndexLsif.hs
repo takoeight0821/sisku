@@ -7,13 +7,13 @@ import Lsif
 
 data IndexLsifOptions = IndexLsifOptions
   { lsifFilePath :: FilePath,
-    lsifHovercraftFilePath :: FilePath
+    hovercraftFilePath :: FilePath
   }
 
 indexLsifCommand :: IndexLsifOptions -> IO ()
-indexLsifCommand IndexLsifOptions {lsifFilePath, lsifHovercraftFilePath} = do
+indexLsifCommand IndexLsifOptions {lsifFilePath, hovercraftFilePath} = do
   hovercrafts <- indexToHovercraft <$> loadLsifFromFile lsifFilePath
-  Aeson.encodeFile lsifHovercraftFilePath hovercrafts
+  Aeson.encodeFile hovercraftFilePath hovercrafts
 
 indexLsifOpts :: Parser IndexLsifOptions
 indexLsifOpts =
