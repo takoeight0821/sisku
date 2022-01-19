@@ -12,6 +12,20 @@ packages:
   original:
     hackage: relude-1.0.0.1
 - completed:
+    hackage: lsp-test-0.14.0.2@sha256:d62d2af45508f04c5fcad23e469c45b37ca19760cee15b025a0eb499cbd28050,4663
+    pantry-tree:
+      size: 1559
+      sha256: 7fba61926846deb098a82b51e58f127ae9c53256db881d446c1a76c85ba2ecc7
+  original:
+    hackage: lsp-test-0.14.0.2
+- completed:
+    hackage: lsp-types-1.4.0.0@sha256:d2a00617b60dd8f2ff253523a559096877733c83a1b1b30ca8b7440df414630f,4504
+    pantry-tree:
+      size: 4225
+      sha256: 5aa3492ff4ff387ee2e06b3106b173635395e327a1e267a31df1098aea4150a6
+  original:
+    hackage: lsp-types-1.4.0.0
+- completed:
     hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
     pantry-tree:
       size: 594
