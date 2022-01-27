@@ -89,11 +89,7 @@ library
     , async
     , base >=4.7 && <5
     , co-log
-    , constraints-extras ==0.3.0.2
     , containers
-    , dependent-map ==0.4.0.0
-    , dependent-sum ==0.7.1.0
-    , dependent-sum-template ==0.1.0.3
     , exceptions
     , extra
     , fgl
@@ -169,11 +165,7 @@ executable sisku
     , async
     , base >=4.7 && <5
     , co-log
-    , constraints-extras ==0.3.0.2
     , containers
-    , dependent-map ==0.4.0.0
-    , dependent-sum ==0.7.1.0
-    , dependent-sum-template ==0.1.0.3
     , exceptions
     , extra
     , fgl
@@ -251,11 +243,7 @@ test-suite sisku-test
     , async
     , base >=4.7 && <5
     , co-log
-    , constraints-extras ==0.3.0.2
     , containers
-    , dependent-map ==0.4.0.0
-    , dependent-sum ==0.7.1.0
-    , dependent-sum-template ==0.1.0.3
     , exceptions
     , extra
     , fgl
