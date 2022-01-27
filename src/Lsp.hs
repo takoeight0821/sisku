@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
@@ -49,7 +48,7 @@ instance FromJSON BuildEnv where
 
 buildHovercraft :: BuildEnv -> IO [Hovercraft]
 buildHovercraft BuildEnv {..} = do
-  files <- concat <$> traverse glob buildEnvSourceFilePatterns
+  files <- map normalise . concat <$> traverse glob buildEnvSourceFilePatterns
   let config = defaultConfig
   hovercrafts <- for files $ seekFile config 0
   pure $ concat hovercrafts
@@ -72,13 +71,13 @@ buildHovercraft BuildEnv {..} = do
       hovercrafts <-
         lift $
           getDocumentSymbols doc >>= \case
-            Right symbolInformations -> collectAllHovers' doc (map (view location) symbolInformations)
+            Right symInfos -> collectAllHovers' doc symInfos
             Left docSymbols -> collectAllHovers doc docSymbols
       lift $ closeDoc doc
       pure hovercrafts
 
     collectAllHovers doc docSymbols = concat <$> traverse (collectHover doc) docSymbols
-    collectAllHovers' doc docSymbols = concat <$> traverse (collectHover' doc) docSymbols
+    collectAllHovers' doc symInfos = concat <$> traverse (collectHover' doc) symInfos
     collectHover doc docSymbol = do
       let pos = docSymbol ^. selectionRange . start
       hover <- getHover doc pos
@@ -92,6 +91,7 @@ buildHovercraft BuildEnv {..} = do
                 { _hover = hover,
                   _definitions = map toDefinition $ uncozip definitions,
                   _moniker = Null,
+                  _document = doc,
                   _rootPath = buildEnvRootPath
                 }
             ]
@@ -100,13 +100,14 @@ buildHovercraft BuildEnv {..} = do
               { _hover = hover,
                 _definitions = map toDefinition $ uncozip definitions,
                 _moniker = Null,
+                _document = doc,
                 _rootPath = buildEnvRootPath
               }
               :
           )
             <$> collectAllHovers doc cs
-    collectHover' doc docSymbol = do
-      let pos = docSymbol ^. range . start
+    collectHover' doc symInfo = do
+      let pos = symInfo ^. location . range . start
       hover <- getHover doc pos
       definitions <- getDefinitions doc pos
       case hover of
@@ -117,9 +118,11 @@ buildHovercraft BuildEnv {..} = do
                 { _hover = hover,
                   _definitions = map toDefinition $ uncozip definitions,
                   _moniker = Null,
+                  _document = doc,
                   _rootPath = buildEnvRootPath 
                 }
             ]
+            
     uncozip (InL xs) = map InL xs
     uncozip (InR xs) = map InR xs
 

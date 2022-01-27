@@ -38,6 +38,7 @@ data Hovercraft = Hovercraft
   { _hover :: Hover,
     _definitions :: [Definition],
     _moniker :: Value,
+    _document :: TextDocumentIdentifier,
     _rootPath :: FilePath
   }
   deriving stock (Show, Generic)

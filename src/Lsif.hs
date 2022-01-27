@@ -62,6 +62,7 @@ indexToHovercraft Index {graph = gr} =
         { _hover = nodeToHover hoverResult,
           _definitions = [],
           _moniker = Null,
+          _document = TextDocumentIdentifier (Uri "<no info>"),
           _rootPath = "" -- FIXME: Add root path
         }
       do
