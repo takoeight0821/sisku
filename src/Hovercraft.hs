@@ -65,7 +65,7 @@ makeLenses ''Hovercraft
 --
 -- Render hovercraft as Markdown
 --
--- Defnitions: file:///home/sisku/src/Hovercraft.hs:39:1
+-- Definitions: file:///home/sisku/src/Hovercraft.hs:39:1
 -- 
 -- Root path: /home/sisku/
 -- :::

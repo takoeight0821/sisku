@@ -22,7 +22,7 @@ import System.Time.Extra (sleep)
 
 data BuildEnv = BuildEnv
   { buildEnvCommand :: FilePath,
-    buildEnvSourceFilePatterns :: [String],
+    buildEnvSourceFiles :: [FilePath],
     buildEnvRootPath :: FilePath,
     buildEnvLanguage :: Text
   }
@@ -31,7 +31,7 @@ instance ToJSON BuildEnv where
   toJSON BuildEnv {..} =
     object
       [ "command" .= buildEnvCommand,
-        "sourceFilePatterns" .= buildEnvSourceFilePatterns,
+        "sourceFiles" .= buildEnvSourceFiles,
         "rootPath" .= buildEnvRootPath,
         "language" .= buildEnvLanguage
       ]
@@ -40,7 +40,7 @@ instance FromJSON BuildEnv where
   parseJSON = withObject "BuildEnv" $ \o ->
     BuildEnv
       <$> o .: "command"
-      <*> o .: "sourceFilePatterns"
+      <*> o .: "sourceFiles"
       <*> o .: "rootPath"
       <*> o .: "language"
 
@@ -48,9 +48,8 @@ instance FromJSON BuildEnv where
 
 buildHovercraft :: BuildEnv -> IO [Hovercraft]
 buildHovercraft BuildEnv {..} = do
-  files <- map normalise . concat <$> traverse glob buildEnvSourceFilePatterns
   let config = defaultConfig
-  hovercrafts <- for files $ seekFile config 0
+  hovercrafts <- for buildEnvSourceFiles $ seekFile config 0
   pure $ concat hovercrafts
   where
     seekFile config waitSec file
@@ -119,10 +118,10 @@ buildHovercraft BuildEnv {..} = do
                   _definitions = map toDefinition $ uncozip definitions,
                   _moniker = Null,
                   _document = doc,
-                  _rootPath = buildEnvRootPath 
+                  _rootPath = buildEnvRootPath
                 }
             ]
-            
+
     uncozip (InL xs) = map InL xs
     uncozip (InR xs) = map InR xs
 
@@ -141,6 +140,7 @@ instance FromJSON LspSettings where
 data LspSetting = LspSetting
   { _lspSettingLanguage :: Text,
     _lspSettingRootUriPatterns :: [Text],
+    _lspSettingExcludePatterns :: [Text],
     _lspSettingCommand :: Text,
     _lspSettingExtensions :: [Text]
   }
@@ -160,6 +160,7 @@ instance FromJSON LspSetting where
     LspSetting
       <$> o .: "language"
       <*> o .: "root_uri_patterns"
+      <*> o .: "exclude_patterns"
       <*> o .: "command"
       <*> o .: "extensions"
 
@@ -170,12 +171,13 @@ generateBuildEnv lspSettings filePath = usingReaderT lspSettings $
     filePath <- liftIO $ makeAbsolute filePath
     language <- detectLanguage filePath
     rootPath <- lift $ searchRootPath language filePath
-    let sourceFilePatterns = [rootPath <> "/**/*" <> takeExtension filePath]
+    sourceFiles <- liftIO $ fmap normalise <$> glob (rootPath <> "/**/*" <> takeExtension filePath)
+    sourceFiles <- lift $ filterExcluded language sourceFiles
     command <- lift $ getCommand language
     pure
       BuildEnv
         { buildEnvCommand = command,
-          buildEnvSourceFilePatterns = sourceFilePatterns,
+          buildEnvSourceFiles = sourceFiles,
           buildEnvRootPath = rootPath,
           buildEnvLanguage = language
         }
@@ -213,6 +215,13 @@ searchRootPath language filePath = do
         else findRootPath rootPathPatterns $ case joinPath <$> viaNonEmpty init (splitPath path) of
           Just parentPath | isValid parentPath && parentPath `notElem` paths -> parentPath : paths
           _ -> paths
+
+-- | Exclude files based on _lspSettingExcludePatterns.
+filterExcluded :: (MonadReader LspSettings m, MonadIO m) => Text -> [FilePath] -> m [FilePath]
+filterExcluded language sourceFiles = do
+  lspSetting <- fromMaybe (error $ "Language " <> show language <> " not found") . view (at language) <$> asks unwrapLspSettings
+  excludedFiles <- liftIO $ traverse makeAbsolute . concat =<< traverse (glob . toString) (_lspSettingExcludePatterns lspSetting)
+  pure $ filter (`notElem` excludedFiles) sourceFiles
 
 -- | Get the command to run the Language Server.
 getCommand :: MonadReader LspSettings m => Text -> m String
