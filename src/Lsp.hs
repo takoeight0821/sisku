@@ -50,7 +50,7 @@ buildHovercraft :: BuildEnv -> IO Hovercraft
 buildHovercraft env@BuildEnv {..} = do
   let config = defaultConfig
   hovercrafts <- for buildEnvSourceFiles $ seekFile config 0
-  pure $ Hovercraft $ concat hovercrafts
+  pure $ Hovercraft hovercrafts
   where
     seekFile config waitSec file
       | waitSec <= 10 =
@@ -59,7 +59,7 @@ buildHovercraft env@BuildEnv {..} = do
             usingLoggerT richMessageAction $ logError $ "session error: " <> show e
             seekFile config (waitSec + 1) file
       | otherwise = error $ "Cannot connect to LSP server: " <> show file
-    seekFile' :: Double -> FilePath -> LoggerT Message Session [Entry]
+    seekFile' :: Double -> FilePath -> LoggerT Message Session Page
     seekFile' waitSec file = do
       logDebug $ toText $ "Seeking file " <> file
       doc <- lift $ openDoc (makeRelative buildEnvRootPath file) buildEnvLanguage
@@ -67,13 +67,13 @@ buildHovercraft env@BuildEnv {..} = do
       -- wait until the server is ready
       logInfo $ "waiting " <> show waitSec <> " seconds before requesting hover"
       liftIO $ sleep waitSec
-      hovercrafts <-
+      entries <-
         lift $
           getDocumentSymbols doc >>= \case
             Right symInfos -> craft env doc symInfos
             Left docSymbols -> craft env doc docSymbols
       lift $ closeDoc doc
-      pure hovercrafts
+      pure $ Page { _document = doc, _entries = entries }
 
 class Craftable a where
   craft :: BuildEnv -> TextDocumentIdentifier -> a -> Session [Entry]
@@ -90,13 +90,19 @@ instance Craftable DocumentSymbol where
       (Nothing, Nothing) -> pure []
       (Nothing, Just (List cs)) -> craft env doc cs
       (Just hover, Nothing) ->
-        pure [Entry {_hover = hover, _definitions = map toDefinition $ uncozip definitions, _moniker = Null, _document = doc, _rootPath = buildEnvRootPath}]
+        pure
+          [ Entry
+              { _hover = hover,
+                _definitions = map toDefinition $ uncozip definitions,
+                _moniker = Null,
+                _rootPath = buildEnvRootPath
+              }
+          ]
       (Just hover, Just (List cs)) ->
         ( Entry
             { _hover = hover,
               _definitions = map toDefinition $ uncozip definitions,
               _moniker = Null,
-              _document = doc,
               _rootPath = buildEnvRootPath
             }
             :
@@ -116,7 +122,6 @@ instance Craftable SymbolInformation where
               { _hover = hover,
                 _definitions = map toDefinition $ uncozip definitions,
                 _moniker = Null,
-                _document = doc,
                 _rootPath = buildEnvRootPath
               }
           ]

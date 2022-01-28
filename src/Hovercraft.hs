@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft (Hovercraft (..), Entry(..), hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
+module Hovercraft (Hovercraft (..), Page(..), Entry(..), document, entries, hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
 
 import Control.Lens (imap, (^.))
 import Control.Lens.TH
@@ -38,7 +38,6 @@ data Entry = Entry
   { _hover :: Hover,
     _definitions :: [Definition],
     _moniker :: Value,
-    _document :: TextDocumentIdentifier,
     _rootPath :: FilePath
   }
   deriving stock (Show, Generic)
@@ -52,7 +51,19 @@ instance FromJSON Entry where
 
 makeLenses ''Entry
 
-newtype Hovercraft = Hovercraft {_hovercraft :: [Entry]}
+data Page = Page { _document :: TextDocumentIdentifier, _entries :: [Entry] }
+  deriving stock (Show, Generic)
+
+instance ToJSON Page where
+  toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
+  toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
+
+instance FromJSON Page where
+  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+makeLenses ''Page
+
+newtype Hovercraft = Hovercraft {_hovercraft :: [Page]}
   deriving stock (Show, Generic)
 
 deriving newtype instance ToJSON Hovercraft
@@ -79,10 +90,13 @@ makeLenses ''Hovercraft
 -- Root path: /home/sisku/
 -- :::
 renderAsMarkdown :: Hovercraft -> Text
-renderAsMarkdown (Hovercraft hs) = unlines $ imap renderSingle hs
+renderAsMarkdown (Hovercraft hs) = unlines $ map renderPage hs
 
-renderSingle :: Int -> Entry -> Text
-renderSingle idx Entry {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
+renderPage :: Page -> Text
+renderPage Page { _entries } = unlines $ imap renderEntry _entries 
+
+renderEntry :: Int -> Entry -> Text
+renderEntry idx Entry {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
   unlines
     [ ":::{#label-" <> show idx <> "}",
       "",
