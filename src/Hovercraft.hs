@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft (Hovercraft (..), hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
+module Hovercraft (Hovercraft (..), Page(..), Entry(..), document, entries, hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
 
 import Control.Lens (imap, (^.))
 import Control.Lens.TH
@@ -34,21 +34,41 @@ instance FromJSON Definition where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
 -- | Hover document and definition information
-data Hovercraft = Hovercraft
+data Entry = Entry
   { _hover :: Hover,
     _definitions :: [Definition],
     _moniker :: Value,
-    _document :: TextDocumentIdentifier,
     _rootPath :: FilePath
   }
   deriving stock (Show, Generic)
 
-instance ToJSON Hovercraft where
+instance ToJSON Entry where
   toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
   toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
 
-instance FromJSON Hovercraft where
+instance FromJSON Entry where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+makeLenses ''Entry
+
+data Page = Page { _document :: TextDocumentIdentifier, _entries :: [Entry] }
+  deriving stock (Show, Generic)
+
+instance ToJSON Page where
+  toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
+  toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
+
+instance FromJSON Page where
+  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+makeLenses ''Page
+
+newtype Hovercraft = Hovercraft {_hovercraft :: [Page]}
+  deriving stock (Show, Generic)
+
+deriving newtype instance ToJSON Hovercraft
+
+deriving newtype instance FromJSON Hovercraft
 
 makeLenses ''Hovercraft
 
@@ -56,7 +76,7 @@ makeLenses ''Hovercraft
 -- Example:
 --
 -- :::{#label-0}
--- 
+--
 -- [🔗](#label-0)
 --
 -- ```haskell
@@ -66,14 +86,17 @@ makeLenses ''Hovercraft
 -- Render hovercraft as Markdown
 --
 -- Definitions: file:///home/sisku/src/Hovercraft.hs:39:1
--- 
+--
 -- Root path: /home/sisku/
 -- :::
-renderAsMarkdown :: [Hovercraft] -> Text
-renderAsMarkdown hs = unlines $ imap renderSingle hs
+renderAsMarkdown :: Hovercraft -> Text
+renderAsMarkdown (Hovercraft hs) = unlines $ map renderPage hs
 
-renderSingle :: Int -> Hovercraft -> Text
-renderSingle idx Hovercraft {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
+renderPage :: Page -> Text
+renderPage Page { _entries } = unlines $ imap renderEntry _entries 
+
+renderEntry :: Int -> Entry -> Text
+renderEntry idx Entry {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
   unlines
     [ ":::{#label-" <> show idx <> "}",
       "",

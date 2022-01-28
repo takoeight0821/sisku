@@ -54,19 +54,20 @@ valuesToIndex vs = Index {graph = mkGraph nodes edges}
           label = fromMaybe "noLabel" (x ^? key "label" . _String)
        in map (outV,,label) inVs
 
-indexToHovercraft :: Index -> [Hovercraft]
+indexToHovercraft :: Index -> Hovercraft
 indexToHovercraft Index {graph = gr} =
-  map ?? hoverResults $ \hoverResult ->
-    executingState
-      Hovercraft
-        { _hover = nodeToHover hoverResult,
-          _definitions = [],
-          _moniker = Null,
-          _document = TextDocumentIdentifier (Uri "<no info>"),
-          _rootPath = "" -- FIXME: Add root path
-        }
-      do
-        traverse_ goResult (concatMap results (pre gr hoverResult))
+  Hovercraft $
+    one . Page (TextDocumentIdentifier (Uri "<no info>")) $
+      map ?? hoverResults $ \hoverResult ->
+        executingState
+          Entry
+            { _hover = nodeToHover hoverResult,
+              _definitions = [],
+              _moniker = Null,
+              _rootPath = "" -- FIXME: Add root path
+            }
+          do
+            traverse_ goResult (concatMap results (pre gr hoverResult))
   where
     getValue x = fromMaybe Null $ lab gr x
     nodeToHover x = case fromMaybe Null (lab gr x) ^? key "result" of
