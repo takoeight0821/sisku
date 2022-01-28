@@ -97,7 +97,7 @@ library
     , flow
     , lens
     , lens-aeson
-    , lsp-test
+    , lsp-test >=0.14.0.1
     , lsp-types
     , optparse-applicative
     , pretty-simple
@@ -173,7 +173,7 @@ executable sisku
     , flow
     , lens
     , lens-aeson
-    , lsp-test
+    , lsp-test >=0.14.0.1
     , lsp-types
     , optparse-applicative
     , pretty-simple
@@ -251,7 +251,7 @@ test-suite sisku-test
     , flow
     , lens
     , lens-aeson
-    , lsp-test
+    , lsp-test >=0.14.0.1
     , lsp-types
     , optparse-applicative
     , pretty-simple
