@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft (Hovercraft (..), hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
+module Hovercraft (Hovercraft (..), Entry(..), hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
 
 import Control.Lens (imap, (^.))
 import Control.Lens.TH
@@ -34,7 +34,7 @@ instance FromJSON Definition where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
 -- | Hover document and definition information
-data Hovercraft = Hovercraft
+data Entry = Entry
   { _hover :: Hover,
     _definitions :: [Definition],
     _moniker :: Value,
@@ -43,12 +43,21 @@ data Hovercraft = Hovercraft
   }
   deriving stock (Show, Generic)
 
-instance ToJSON Hovercraft where
+instance ToJSON Entry where
   toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
   toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
 
-instance FromJSON Hovercraft where
+instance FromJSON Entry where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+makeLenses ''Entry
+
+newtype Hovercraft = Hovercraft {_hovercraft :: [Entry]}
+  deriving stock (Show, Generic)
+
+deriving newtype instance ToJSON Hovercraft
+
+deriving newtype instance FromJSON Hovercraft
 
 makeLenses ''Hovercraft
 
@@ -56,7 +65,7 @@ makeLenses ''Hovercraft
 -- Example:
 --
 -- :::{#label-0}
--- 
+--
 -- [🔗](#label-0)
 --
 -- ```haskell
@@ -66,14 +75,14 @@ makeLenses ''Hovercraft
 -- Render hovercraft as Markdown
 --
 -- Definitions: file:///home/sisku/src/Hovercraft.hs:39:1
--- 
+--
 -- Root path: /home/sisku/
 -- :::
-renderAsMarkdown :: [Hovercraft] -> Text
-renderAsMarkdown hs = unlines $ imap renderSingle hs
+renderAsMarkdown :: Hovercraft -> Text
+renderAsMarkdown (Hovercraft hs) = unlines $ imap renderSingle hs
 
-renderSingle :: Int -> Hovercraft -> Text
-renderSingle idx Hovercraft {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
+renderSingle :: Int -> Entry -> Text
+renderSingle idx Entry {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
   unlines
     [ ":::{#label-" <> show idx <> "}",
       "",

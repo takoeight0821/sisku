@@ -46,11 +46,11 @@ instance FromJSON BuildEnv where
 
 -- * Build hovercrafts via LSP
 
-buildHovercraft :: BuildEnv -> IO [Hovercraft]
-buildHovercraft BuildEnv {..} = do
+buildHovercraft :: BuildEnv -> IO Hovercraft
+buildHovercraft env@BuildEnv {..} = do
   let config = defaultConfig
   hovercrafts <- for buildEnvSourceFiles $ seekFile config 0
-  pure $ concat hovercrafts
+  pure $ Hovercraft $ concat hovercrafts
   where
     seekFile config waitSec file
       | waitSec <= 10 =
@@ -59,7 +59,7 @@ buildHovercraft BuildEnv {..} = do
             usingLoggerT richMessageAction $ logError $ "session error: " <> show e
             seekFile config (waitSec + 1) file
       | otherwise = error $ "Cannot connect to LSP server: " <> show file
-    seekFile' :: Double -> FilePath -> LoggerT Message Session [Hovercraft]
+    seekFile' :: Double -> FilePath -> LoggerT Message Session [Entry]
     seekFile' waitSec file = do
       logDebug $ toText $ "Seeking file " <> file
       doc <- lift $ openDoc (makeRelative buildEnvRootPath file) buildEnvLanguage
@@ -70,60 +70,60 @@ buildHovercraft BuildEnv {..} = do
       hovercrafts <-
         lift $
           getDocumentSymbols doc >>= \case
-            Right symInfos -> collectAllHovers' doc symInfos
-            Left docSymbols -> collectAllHovers doc docSymbols
+            Right symInfos -> craft env doc symInfos
+            Left docSymbols -> craft env doc docSymbols
       lift $ closeDoc doc
       pure hovercrafts
 
-    collectAllHovers doc docSymbols = concat <$> traverse (collectHover doc) docSymbols
-    collectAllHovers' doc symInfos = concat <$> traverse (collectHover' doc) symInfos
-    collectHover doc docSymbol = do
-      let pos = docSymbol ^. selectionRange . start
-      hover <- getHover doc pos
-      definitions <- getDefinitions doc pos
-      case (hover, docSymbol ^. children) of
-        (Nothing, Nothing) -> pure []
-        (Nothing, Just (List cs)) -> collectAllHovers doc cs
-        (Just hover, Nothing) ->
-          pure
-            [ Hovercraft
-                { _hover = hover,
-                  _definitions = map toDefinition $ uncozip definitions,
-                  _moniker = Null,
-                  _document = doc,
-                  _rootPath = buildEnvRootPath
-                }
-            ]
-        (Just hover, Just (List cs)) ->
-          ( Hovercraft
+class Craftable a where
+  craft :: BuildEnv -> TextDocumentIdentifier -> a -> Session [Entry]
+
+instance Craftable a => Craftable [a] where
+  craft env doc xs = concat <$> traverse (craft env doc) xs
+
+instance Craftable DocumentSymbol where
+  craft env@BuildEnv {..} doc DocumentSymbol {..} = do
+    let pos = _selectionRange ^. start
+    hover <- getHover doc pos
+    definitions <- getDefinitions doc pos
+    case (hover, _children) of
+      (Nothing, Nothing) -> pure []
+      (Nothing, Just (List cs)) -> craft env doc cs
+      (Just hover, Nothing) ->
+        pure [Entry {_hover = hover, _definitions = map toDefinition $ uncozip definitions, _moniker = Null, _document = doc, _rootPath = buildEnvRootPath}]
+      (Just hover, Just (List cs)) ->
+        ( Entry
+            { _hover = hover,
+              _definitions = map toDefinition $ uncozip definitions,
+              _moniker = Null,
+              _document = doc,
+              _rootPath = buildEnvRootPath
+            }
+            :
+        )
+          <$> craft env doc cs
+
+instance Craftable SymbolInformation where
+  craft BuildEnv {..} doc SymbolInformation {..} = do
+    let pos = _location ^. range . start
+    hover <- getHover doc pos
+    definitions <- getDefinitions doc pos
+    case hover of
+      Nothing -> pure []
+      Just hover ->
+        pure
+          [ Entry
               { _hover = hover,
                 _definitions = map toDefinition $ uncozip definitions,
                 _moniker = Null,
                 _document = doc,
                 _rootPath = buildEnvRootPath
               }
-              :
-          )
-            <$> collectAllHovers doc cs
-    collectHover' doc symInfo = do
-      let pos = symInfo ^. location . range . start
-      hover <- getHover doc pos
-      definitions <- getDefinitions doc pos
-      case hover of
-        Nothing -> pure []
-        Just hover ->
-          pure
-            [ Hovercraft
-                { _hover = hover,
-                  _definitions = map toDefinition $ uncozip definitions,
-                  _moniker = Null,
-                  _document = doc,
-                  _rootPath = buildEnvRootPath
-                }
-            ]
+          ]
 
-    uncozip (InL xs) = map InL xs
-    uncozip (InR xs) = map InR xs
+uncozip :: ([a] |? [b]) -> [a |? b]
+uncozip (InL xs) = map InL xs
+uncozip (InR xs) = map InR xs
 
 -- * LSP helpers
 

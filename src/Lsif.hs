@@ -54,11 +54,11 @@ valuesToIndex vs = Index {graph = mkGraph nodes edges}
           label = fromMaybe "noLabel" (x ^? key "label" . _String)
        in map (outV,,label) inVs
 
-indexToHovercraft :: Index -> [Hovercraft]
+indexToHovercraft :: Index -> Hovercraft
 indexToHovercraft Index {graph = gr} =
-  map ?? hoverResults $ \hoverResult ->
+  Hovercraft $ map ?? hoverResults $ \hoverResult ->
     executingState
-      Hovercraft
+      Entry
         { _hover = nodeToHover hoverResult,
           _definitions = [],
           _moniker = Null,
