@@ -67,6 +67,11 @@ buildHovercraft env@BuildEnv {..} = do
       -- wait until the server is ready
       logInfo $ "waiting " <> show waitSec <> " seconds before requesting hover"
       liftIO $ sleep waitSec
+      
+      logDebug "Get semantic tokens"
+      semanticTokens <- lift $ getSemanticTokens doc
+      logDebug $ "Semantic tokens: " <> show semanticTokens
+
       entries <-
         lift $
           getDocumentSymbols doc >>= \case
