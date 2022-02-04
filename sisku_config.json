@@ -1,0 +1,29 @@
+{
+	"projectId": "takoeight0821-sisku",
+	"lspSettings": {
+		"haskell": {
+			"language": "haskell",
+			"root_uri_patterns": [
+				"package.yaml"
+			],
+			"exclude_patterns": [
+				"dist-newstyle/**/*.hs"
+			],
+			"command": "haskell-language-server-wrapper --lsp",
+			"extensions": [
+				".hs"
+			]
+		},
+		"rust": {
+			"language": "rust",
+			"root_uri_patterns": [
+				"Cargo.toml"
+			],
+			"exclude_patterns": [],
+			"command": "rust-analyzer",
+			"extensions": [
+				".rs"
+			]
+		}
+	}
+}
