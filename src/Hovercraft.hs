@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft (Hovercraft (..), Page(..), Entry(..), document, entries, hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
+module Hovercraft (Hovercraft (..), Page(..), Entry(..), document, entries, hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition, writeHovercraft) where
 
 import Control.Lens (imap, (^.))
 import Control.Lens.TH
@@ -8,6 +8,9 @@ import Data.Aeson
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens (character, line, start)
 import Relude
+import System.Directory.Extra (getXdgDirectory, XdgDirectory (XdgData), createDirectoryIfMissing)
+import System.FilePath ((</>))
+import qualified Data.Aeson as Aeson
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Show, Generic)
@@ -113,3 +116,15 @@ renderEntry idx Entry {_hover = Hover {_contents = contents}, _definitions, _roo
       HoverContents (MarkupContent MkPlainText txt) -> txt
       HoverContents (MarkupContent MkMarkdown txt) -> txt
       HoverContentsMS _ -> error "MarkedString is deprecated"
+
+-- | Get XDG_DATA_HOME
+getDataHome :: IO FilePath
+getDataHome = getXdgDirectory XdgData "hovercraft"
+
+-- | Write hovercraft to file
+writeHovercraft :: String -> Hovercraft -> IO ()
+writeHovercraft projectName hc = do
+  dataHome <- getDataHome
+  createDirectoryIfMissing True dataHome
+  let file = dataHome </> (projectName <> ".json")
+  Aeson.encodeFile file hc

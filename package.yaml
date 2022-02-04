@@ -43,6 +43,7 @@ dependencies:
 - text
 - safe-exceptions
 - req
+- unliftio
 # following needed because of https://github.com/alanz/lsp/issues/263
 # - constraints-extras == 0.3.0.2
 # - dependent-map == 0.4.0.0

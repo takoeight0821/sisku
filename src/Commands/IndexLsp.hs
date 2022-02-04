@@ -1,22 +1,24 @@
 module Commands.IndexLsp (parser) where
 
 import qualified Data.Aeson as Aeson
-import Lsp (LspSettings, buildHovercraft, generateBuildEnv)
+import Lsp (LspSettings, buildHovercraft, generateBuildEnv, BuildEnv (buildEnvRootPath))
 import Options.Applicative
 import Relude
+import System.FilePath (takeBaseName, dropTrailingPathSeparator)
+import Hovercraft (writeHovercraft)
 
 data Options = Options
   { entryFilePath :: FilePath,
-    lspSettingsFilePath :: FilePath,
-    hovercraftFilePath :: FilePath
+    lspSettingsFilePath :: FilePath
   }
 
 cmd :: Options -> IO ()
 cmd Options {..} = do
   lspSettings <- loadLspSettingsFromFile lspSettingsFilePath
   buildEnv <- generateBuildEnv lspSettings entryFilePath
-  hovercrafts <- buildHovercraft buildEnv
-  Aeson.encodeFile hovercraftFilePath hovercrafts
+  hovercraft <- buildHovercraft buildEnv
+  let projectName = takeBaseName $ dropTrailingPathSeparator $ buildEnvRootPath buildEnv
+  writeHovercraft projectName hovercraft 
   where
     loadLspSettingsFromFile :: FilePath -> IO LspSettings
     loadLspSettingsFromFile filePath = do
@@ -30,7 +32,6 @@ opts =
   Options
       <$> strArgument (metavar "<entry file>")
     <*> strOption (short 's' <> long "settings" <> metavar "<lsp settings>" <> help "Path to the LSP settings file" <> value "lsp-settings.json")
-    <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "hovercraft.json")
 
 parser :: Mod CommandFields (IO ())
 parser = command "index-lsp" (info (cmd <$> opts) (progDesc "Make a index via LSP."))
