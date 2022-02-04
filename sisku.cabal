@@ -30,6 +30,7 @@ library
       Commands.IndexLsp
       Commands.RenderMarkdown
       Commands.Search
+      Config
       Hovercraft
       Lsif
       Lsp
@@ -106,7 +107,9 @@ library
     , req
     , safe-exceptions
     , text
+    , unliftio
     , unordered-containers
+    , uuid
   default-language: Haskell2010
 
 executable sisku
@@ -183,7 +186,9 @@ executable sisku
     , safe-exceptions
     , sisku
     , text
+    , unliftio
     , unordered-containers
+    , uuid
   default-language: Haskell2010
 
 test-suite sisku-test
@@ -261,5 +266,7 @@ test-suite sisku-test
     , safe-exceptions
     , sisku
     , text
+    , unliftio
     , unordered-containers
+    , uuid
   default-language: Haskell2010

@@ -1,13 +1,21 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft (Hovercraft (..), Page(..), Entry(..), document, entries, hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition) where
+module Hovercraft (Hovercraft (..), Page (..), Entry (..), document, entries, hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition, writeHovercraft) where
 
 import Control.Lens (imap, (^.))
 import Control.Lens.TH
 import Data.Aeson
+import qualified Data.Aeson as Aeson
+import Data.UUID (UUID)
+import qualified Data.UUID as UUID
+import Data.UUID.V1 (nextUUID)
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens (character, line, start)
 import Relude
+import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
+import System.FilePath ((</>))
+import System.Time.Extra (sleep)
+import Config
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Show, Generic)
@@ -51,7 +59,7 @@ instance FromJSON Entry where
 
 makeLenses ''Entry
 
-data Page = Page { _document :: TextDocumentIdentifier, _entries :: [Entry] }
+data Page = Page {_document :: TextDocumentIdentifier, _entries :: [Entry]}
   deriving stock (Show, Generic)
 
 instance ToJSON Page where
@@ -63,14 +71,12 @@ instance FromJSON Page where
 
 makeLenses ''Page
 
-newtype Hovercraft = Hovercraft {_hovercraft :: [Page]}
+newtype Hovercraft = Hovercraft {unwrapHovercraft :: [Page]}
   deriving stock (Show, Generic)
 
 deriving newtype instance ToJSON Hovercraft
 
 deriving newtype instance FromJSON Hovercraft
-
-makeLenses ''Hovercraft
 
 -- | Render hovercraft as Markdown
 -- Example:
@@ -93,7 +99,7 @@ renderAsMarkdown :: Hovercraft -> Text
 renderAsMarkdown (Hovercraft hs) = unlines $ map renderPage hs
 
 renderPage :: Page -> Text
-renderPage Page { _entries } = unlines $ imap renderEntry _entries 
+renderPage Page {_entries} = unlines $ imap renderEntry _entries
 
 renderEntry :: Int -> Entry -> Text
 renderEntry idx Entry {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
@@ -113,3 +119,27 @@ renderEntry idx Entry {_hover = Hover {_contents = contents}, _definitions, _roo
       HoverContents (MarkupContent MkPlainText txt) -> txt
       HoverContents (MarkupContent MkMarkdown txt) -> txt
       HoverContentsMS _ -> error "MarkedString is deprecated"
+
+-- | Get XDG_DATA_HOME
+getDataHome :: IO FilePath
+getDataHome = getXdgDirectory XdgData "hovercraft"
+
+-- | Write hovercraft to file
+writeHovercraft :: SiskuConfig -> Hovercraft -> IO ()
+writeHovercraft config hc = do
+  dataHome <- getDataHome
+  createDirectoryIfMissing True dataHome
+  uuid <- getUUID 10
+  let file = dataHome </> (toString (config ^. projectId) <> "-" <> UUID.toString uuid <> ".json")
+  Aeson.encodeFile file hc
+
+getUUID :: Int -> IO UUID
+getUUID n
+  | n >= 0 = do
+    uuid <- nextUUID
+    case uuid of
+      Nothing -> do
+        sleep 0.1
+        getUUID (n - 1)
+      Just uuid' -> pure uuid'
+  | otherwise = error "Could not generate UUID"
