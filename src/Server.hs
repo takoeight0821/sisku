@@ -7,6 +7,7 @@ import Relude
 import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp, type (:<|>) ((:<|>)), type (:>))
 import System.FilePath (takeBaseName, (</>))
 import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirectory)
+import Network.Wai.Middleware.Rewrite (rewriteRoot)
 
 type API =
   "hovercraft" :> Get '[JSON] (Map Text Hovercraft)
@@ -34,4 +35,5 @@ getAllHovercrafts = do
         Just hovercraft -> pure (toText $ takeBaseName file, hovercraft)
 
 app :: FilePath -> Application
-app staticFilePath = serve api (server staticFilePath)
+app staticFilePath = 
+  rewriteRoot "index.html" $ serve api (server staticFilePath)

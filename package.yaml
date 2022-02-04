@@ -48,6 +48,7 @@ dependencies:
 - servant-server
 - wai
 - warp
+- wai-extra
 
 ghc-options:
   - -Wall
