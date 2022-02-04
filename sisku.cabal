@@ -30,6 +30,7 @@ library
       Commands.IndexLsp
       Commands.RenderMarkdown
       Commands.Search
+      Config
       Hovercraft
       Lsif
       Lsp

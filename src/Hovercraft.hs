@@ -15,6 +15,7 @@ import Relude
 import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import System.FilePath ((</>))
 import System.Time.Extra (sleep)
+import Config
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Show, Generic)
@@ -124,12 +125,12 @@ getDataHome :: IO FilePath
 getDataHome = getXdgDirectory XdgData "hovercraft"
 
 -- | Write hovercraft to file
-writeHovercraft :: String -> Hovercraft -> IO ()
-writeHovercraft projectName hc = do
+writeHovercraft :: SiskuConfig -> Hovercraft -> IO ()
+writeHovercraft config hc = do
   dataHome <- getDataHome
   createDirectoryIfMissing True dataHome
   uuid <- getUUID 10
-  let file = dataHome </> (projectName <> "-" <> UUID.toString uuid <> ".json")
+  let file = dataHome </> (toString (config ^. projectId) <> "-" <> UUID.toString uuid <> ".json")
   Aeson.encodeFile file hc
 
 getUUID :: Int -> IO UUID
