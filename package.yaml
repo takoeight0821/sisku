@@ -44,7 +44,10 @@ dependencies:
 - safe-exceptions
 - req
 - unliftio
-- uuid
+- servant
+- servant-server
+- wai
+- warp
 
 ghc-options:
   - -Wall

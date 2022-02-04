@@ -30,11 +30,13 @@ library
       Commands.IndexLsp
       Commands.RenderMarkdown
       Commands.Search
+      Commands.Server
       Config
       Hovercraft
       Lsif
       Lsp
       Search
+      Server
       Sisku
   other-modules:
       Paths_sisku
@@ -106,10 +108,13 @@ library
     , relude
     , req
     , safe-exceptions
+    , servant
+    , servant-server
     , text
     , unliftio
     , unordered-containers
-    , uuid
+    , wai
+    , warp
   default-language: Haskell2010
 
 executable sisku
@@ -184,11 +189,14 @@ executable sisku
     , relude
     , req
     , safe-exceptions
+    , servant
+    , servant-server
     , sisku
     , text
     , unliftio
     , unordered-containers
-    , uuid
+    , wai
+    , warp
   default-language: Haskell2010
 
 test-suite sisku-test
@@ -264,9 +272,12 @@ test-suite sisku-test
     , relude
     , req
     , safe-exceptions
+    , servant
+    , servant-server
     , sisku
     , text
     , unliftio
     , unordered-containers
-    , uuid
+    , wai
+    , warp
   default-language: Haskell2010

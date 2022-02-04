@@ -9,6 +9,7 @@ import qualified Commands.IndexLsp
 import qualified Commands.IndexLsif
 import qualified Commands.RenderMarkdown
 import qualified Commands.Search
+import qualified Commands.Server
 
 opts :: Parser (IO ())
 opts =
@@ -18,6 +19,7 @@ opts =
       <> Commands.GenElasticIndex.parser
       <> Commands.RenderMarkdown.parser
       <> Commands.Search.parser
+      <> Commands.Server.parser
 
 main :: IO ()
 main = join $ execParser (info (opts <**> helper) (fullDesc <> header "Sisku - Polyglot API Search Engine"))
