@@ -44,7 +44,6 @@ dependencies:
 - safe-exceptions
 - req
 - unliftio
-- uuid
 - servant
 - servant-server
 - wai

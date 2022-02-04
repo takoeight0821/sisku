@@ -6,15 +6,11 @@ import Control.Lens (imap, (^.))
 import Control.Lens.TH
 import Data.Aeson
 import qualified Data.Aeson as Aeson
-import Data.UUID (UUID)
-import qualified Data.UUID as UUID
-import Data.UUID.V1 (nextUUID)
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens (character, line, start)
 import Relude
 import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import System.FilePath ((</>))
-import System.Time.Extra (sleep)
 import Config
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
@@ -122,24 +118,12 @@ renderEntry idx Entry {_hover = Hover {_contents = contents}, _definitions, _roo
 
 -- | Get XDG_DATA_HOME
 getDataHome :: IO FilePath
-getDataHome = getXdgDirectory XdgData "hovercraft"
+getDataHome = getXdgDirectory XdgData "sisku/hovercraft"
 
 -- | Write hovercraft to file
 writeHovercraft :: SiskuConfig -> Hovercraft -> IO ()
 writeHovercraft config hc = do
   dataHome <- getDataHome
   createDirectoryIfMissing True dataHome
-  uuid <- getUUID 10
-  let file = dataHome </> (toString (config ^. projectId) <> "-" <> UUID.toString uuid <> ".json")
+  let file = dataHome </> (toString (config ^. projectId) <> ".json")
   Aeson.encodeFile file hc
-
-getUUID :: Int -> IO UUID
-getUUID n
-  | n >= 0 = do
-    uuid <- nextUUID
-    case uuid of
-      Nothing -> do
-        sleep 0.1
-        getUUID (n - 1)
-      Just uuid' -> pure uuid'
-  | otherwise = error "Could not generate UUID"
