@@ -113,7 +113,6 @@ library
     , text
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , warp
   default-language: Haskell2010
@@ -196,7 +195,6 @@ executable sisku
     , text
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , warp
   default-language: Haskell2010
@@ -280,7 +278,6 @@ test-suite sisku-test
     , text
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , warp
   default-language: Haskell2010

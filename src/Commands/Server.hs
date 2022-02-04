@@ -18,6 +18,7 @@ cmd Options {..} = do
     error $
       "Directory " <> show staticFilePath <> " does not exist.\n"
         <> "Please install sisku-elm.\n"
+  putTextLn $ "Listening on port " <> show port <> "..."
   run port (app staticFilePath)
 
 opts :: Parser Options
