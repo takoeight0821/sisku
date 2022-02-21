@@ -56,12 +56,14 @@ valuesToIndex vs = Index {graph = mkGraph nodes edges}
 
 indexToHovercraft :: Index -> Hovercraft
 indexToHovercraft Index {graph = gr} =
-  Hovercraft $
-    one . Page (TextDocumentIdentifier (Uri "<no info>")) $
+  Hovercraft "<no info>" $
+    one . Page $
       map ?? hoverResults $ \hoverResult ->
         executingState
           Entry
-            { _hover = nodeToHover hoverResult,
+            { _document = TextDocumentIdentifier (Uri "<no info>"),
+              _projectId = "<no info>",
+              _hover = nodeToHover hoverResult,
               _definitions = [],
               _moniker = Null,
               _rootPath = "" -- FIXME: Add root path

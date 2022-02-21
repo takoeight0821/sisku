@@ -1,7 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft (Hovercraft (..), Page (..), Entry (..), document, entries, hover, definitions, moniker, rootPath, toDefinition, renderAsMarkdown, prettyDefinition, writeHovercraft) where
+module Hovercraft (Hovercraft (..), Page (..), Entry (..), entries, toDefinition, prettyDefinition, writeHovercraft, pageDocument) where
 
+import Config
 import Control.Lens (imap, (^.))
 import Control.Lens.TH
 import Data.Aeson
@@ -11,7 +12,6 @@ import Language.LSP.Types.Lens (character, line, start)
 import Relude
 import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import System.FilePath ((</>))
-import Config
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Show, Generic)
@@ -39,7 +39,9 @@ instance FromJSON Definition where
 
 -- | Hover document and definition information
 data Entry = Entry
-  { _hover :: Hover,
+  { _document :: TextDocumentIdentifier,
+    _projectId :: Text,
+    _hover :: Hover,
     _definitions :: [Definition],
     _moniker :: Value,
     _rootPath :: FilePath
@@ -53,9 +55,7 @@ instance ToJSON Entry where
 instance FromJSON Entry where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
-makeLenses ''Entry
-
-data Page = Page {_document :: TextDocumentIdentifier, _entries :: [Entry]}
+newtype Page = Page {_entries :: [Entry]}
   deriving stock (Show, Generic)
 
 instance ToJSON Page where
@@ -67,54 +67,16 @@ instance FromJSON Page where
 
 makeLenses ''Page
 
-newtype Hovercraft = Hovercraft {unwrapHovercraft :: [Page]}
+pageDocument :: Page -> TextDocumentIdentifier
+pageDocument Page {_entries = e : _} = _document e
+pageDocument _ = error "pageDocument: no entries"
+
+data Hovercraft = Hovercraft {projectId :: Text, pages :: [Page]}
   deriving stock (Show, Generic)
 
-deriving newtype instance ToJSON Hovercraft
+instance ToJSON Hovercraft
 
-deriving newtype instance FromJSON Hovercraft
-
--- | Render hovercraft as Markdown
--- Example:
---
--- :::{#label-0}
---
--- [🔗](#label-0)
---
--- ```haskell
--- renderAsMarkdown :: [Hovercraft] -> Text
--- ```
---
--- Render hovercraft as Markdown
---
--- Definitions: file:///home/sisku/src/Hovercraft.hs:39:1
---
--- Root path: /home/sisku/
--- :::
-renderAsMarkdown :: Hovercraft -> Text
-renderAsMarkdown (Hovercraft hs) = unlines $ map renderPage hs
-
-renderPage :: Page -> Text
-renderPage Page {_entries} = unlines $ imap renderEntry _entries
-
-renderEntry :: Int -> Entry -> Text
-renderEntry idx Entry {_hover = Hover {_contents = contents}, _definitions, _rootPath} =
-  unlines
-    [ ":::{#label-" <> show idx <> "}",
-      "",
-      "[🔗](#label-" <> show idx <> ")",
-      doc,
-      "",
-      "Definitions: " <> unlines (map prettyDefinition _definitions),
-      "",
-      "Root path: " <> toText _rootPath,
-      ":::"
-    ]
-  where
-    doc = case contents of
-      HoverContents (MarkupContent MkPlainText txt) -> txt
-      HoverContents (MarkupContent MkMarkdown txt) -> txt
-      HoverContentsMS _ -> error "MarkedString is deprecated"
+instance FromJSON Hovercraft
 
 -- | Get XDG_DATA_HOME
 getDataHome :: IO FilePath
@@ -125,5 +87,5 @@ writeHovercraft :: SiskuConfig -> Hovercraft -> IO ()
 writeHovercraft config hc = do
   dataHome <- getDataHome
   createDirectoryIfMissing True dataHome
-  let file = dataHome </> (toString (config ^. projectId) <> ".json")
+  let file = dataHome </> (toString (config ^. Config.projectId) <> ".json")
   Aeson.encodeFile file hc

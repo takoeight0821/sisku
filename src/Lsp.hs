@@ -23,7 +23,8 @@ data BuildEnv = BuildEnv
   { buildEnvCommand :: FilePath,
     buildEnvSourceFiles :: [FilePath],
     buildEnvRootPath :: FilePath,
-    buildEnvLanguage :: Text
+    buildEnvLanguage :: Text,
+    buildEnvProjectId :: Text
   }
 
 instance ToJSON BuildEnv where
@@ -32,7 +33,8 @@ instance ToJSON BuildEnv where
       [ "command" .= buildEnvCommand,
         "sourceFiles" .= buildEnvSourceFiles,
         "rootPath" .= buildEnvRootPath,
-        "language" .= buildEnvLanguage
+        "language" .= buildEnvLanguage,
+        "projectId" .= buildEnvProjectId
       ]
 
 instance FromJSON BuildEnv where
@@ -42,6 +44,7 @@ instance FromJSON BuildEnv where
       <*> o .: "sourceFiles"
       <*> o .: "rootPath"
       <*> o .: "language"
+      <*> o .: "projectId"
 
 -- * Build hovercrafts via LSP
 
@@ -57,7 +60,7 @@ buildHovercraft env@BuildEnv {..} = do
           logDebug $ toText $ "Opened " <> file
           pure (file, doc)
         for fileList $ uncurry seekFile
-  pure $ Hovercraft hovercrafts
+  pure $ Hovercraft buildEnvProjectId hovercrafts
   where
     seekFile :: FilePath -> TextDocumentIdentifier -> LoggerT Message Session Page
     seekFile file doc = do
@@ -69,7 +72,7 @@ buildHovercraft env@BuildEnv {..} = do
           Right symInfos -> craft env doc symInfos
           Left docSymbols -> craft env doc docSymbols
       lift $ closeDoc doc
-      pure $ Page {_document = doc, _entries = entries}
+      pure $ Page {_entries = entries}
 
 getDocumentSymbols ::
   ( MonadReader env (t Session),
@@ -150,7 +153,9 @@ instance Craftable DocumentSymbol where
       (Just hover, Nothing) -> do
         pure
           [ Entry
-              { _hover = hover,
+              { _document = doc,
+                _projectId = buildEnvProjectId,
+                _hover = hover,
                 _definitions = map toDefinition $ uncozip definitions,
                 _moniker = Null,
                 _rootPath = buildEnvRootPath
@@ -158,7 +163,9 @@ instance Craftable DocumentSymbol where
           ]
       (Just hover, Just (List cs)) -> do
         ( Entry
-            { _hover = hover,
+            { _document = doc,
+              _projectId = buildEnvProjectId,
+              _hover = hover,
               _definitions = map toDefinition $ uncozip definitions,
               _moniker = Null,
               _rootPath = buildEnvRootPath
@@ -177,7 +184,9 @@ instance Craftable SymbolInformation where
       Just hover -> do
         pure
           [ Entry
-              { _hover = hover,
+              { _document = doc,
+                _projectId = buildEnvProjectId,
+                _hover = hover,
                 _definitions = map toDefinition $ uncozip definitions,
                 _moniker = Null,
                 _rootPath = buildEnvRootPath
@@ -192,7 +201,7 @@ uncozip (InR xs) = map InR xs
 
 -- | Generate a `BuildEnv` from the given file path.
 generateBuildEnv :: SiskuConfig -> FilePath -> IO BuildEnv
-generateBuildEnv SiskuConfig {_lspSettings = lspSettings} filePath = usingReaderT lspSettings $
+generateBuildEnv SiskuConfig {_projectId = projectId, _lspSettings = lspSettings} filePath = usingReaderT lspSettings $
   usingLoggerT richMessageAction $ do
     filePath <- liftIO $ makeAbsolute filePath
     language <- detectLanguage filePath
@@ -205,7 +214,8 @@ generateBuildEnv SiskuConfig {_lspSettings = lspSettings} filePath = usingReader
         { buildEnvCommand = command,
           buildEnvSourceFiles = sourceFiles,
           buildEnvRootPath = rootPath,
-          buildEnvLanguage = language
+          buildEnvLanguage = language,
+          buildEnvProjectId = projectId
         }
 
 -- | Detect what programming language the given file is written in.
