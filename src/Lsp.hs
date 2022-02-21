@@ -2,16 +2,15 @@
 
 module Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
 
-import Colog (LoggerT, Message, logDebug, logError, logInfo, usingLoggerT)
+import Colog (HasLog (..), LoggerT, Message, logDebug, logInfo, logWarning, usingLoggerT)
 import Colog.Actions (richMessageAction)
 import Config
-import Control.Exception (catch)
 import Control.Lens hiding (List, children, (.=), (??))
 import Data.Aeson
 import qualified Data.Map as Map
 import Data.Traversable
 import Hovercraft
-import Language.LSP.Test
+import Language.LSP.Test hiding (getDefinitions, getDocumentSymbols, getHover)
 import Language.LSP.Types hiding (Message)
 import Language.LSP.Types.Lens hiding (to)
 import Relude
@@ -46,50 +45,109 @@ instance FromJSON BuildEnv where
 
 -- * Build hovercrafts via LSP
 
+-- | Build a hovercraft using LSP.
 buildHovercraft :: BuildEnv -> IO Hovercraft
 buildHovercraft env@BuildEnv {..} = do
   let config = defaultConfig
-  hovercrafts <- for buildEnvSourceFiles $ seekFile config 0
+  hovercrafts <-
+    runSessionWithConfig config buildEnvCommand fullCaps buildEnvRootPath $
+      usingLoggerT richMessageAction $ do
+        fileList <- for buildEnvSourceFiles $ \file -> do
+          doc <- lift $ openDoc (makeRelative buildEnvRootPath file) buildEnvLanguage
+          logDebug $ toText $ "Opened " <> file
+          pure (file, doc)
+        for fileList $ uncurry seekFile
   pure $ Hovercraft hovercrafts
   where
-    seekFile config waitSec file
-      | waitSec <= 10 =
-        runSessionWithConfig config buildEnvCommand fullCaps buildEnvRootPath (usingLoggerT richMessageAction $ seekFile' waitSec file)
-          `catch` \(e :: SessionException) -> do
-            usingLoggerT richMessageAction $ logError $ "session error: " <> show e
-            seekFile config (waitSec + 1) file
-      | otherwise = error $ "Cannot connect to LSP server: " <> show file
-    seekFile' :: Double -> FilePath -> LoggerT Message Session Page
-    seekFile' waitSec file = do
+    seekFile :: FilePath -> TextDocumentIdentifier -> LoggerT Message Session Page
+    seekFile file doc = do
       logDebug $ toText $ "Seeking file " <> file
-      doc <- lift $ openDoc (makeRelative buildEnvRootPath file) buildEnvLanguage
-      logDebug $ toText $ "Opened " <> file
-      -- wait until the server is ready
-      logInfo $ "waiting " <> show waitSec <> " seconds before requesting hover"
-      liftIO $ sleep waitSec
+      symbols <- getDocumentSymbols doc
+      logInfo $ "Got symbols for " <> show file
       entries <-
-        lift $
-          getDocumentSymbols doc >>= \case
-            Right symInfos -> craft env doc symInfos
-            Left docSymbols -> craft env doc docSymbols
+        case symbols of
+          Right symInfos -> craft env doc symInfos
+          Left docSymbols -> craft env doc docSymbols
       lift $ closeDoc doc
       pure $ Page {_document = doc, _entries = entries}
 
+getDocumentSymbols ::
+  ( MonadReader env (t Session),
+    MonadIO (t Session),
+    MonadTrans t,
+    HasLog env Message (t Session)
+  ) =>
+  TextDocumentIdentifier ->
+  t Session (Either [DocumentSymbol] [SymbolInformation])
+getDocumentSymbols doc = do
+  ResponseMessage _ rspLid res <- lift $ request STextDocumentDocumentSymbol (DocumentSymbolParams Nothing Nothing doc)
+  case res of
+    Right (InL (List xs)) -> pure (Left xs)
+    Right (InR (List xs)) -> pure (Right xs)
+    Left err -> do
+      logWarning $ "Error id " <> show rspLid <> ": " <> show err
+      liftIO $ sleep 1
+      logWarning "Retrying..."
+      getDocumentSymbols doc
+
 class Craftable a where
-  craft :: BuildEnv -> TextDocumentIdentifier -> a -> Session [Entry]
+  craft :: BuildEnv -> TextDocumentIdentifier -> a -> LoggerT Message Session [Entry]
 
 instance Craftable a => Craftable [a] where
   craft env doc xs = concat <$> traverse (craft env doc) xs
 
+getHover ::
+  ( MonadReader env (t Session),
+    MonadIO (t Session),
+    MonadTrans t,
+    HasLog env Message (t Session)
+  ) =>
+  TextDocumentIdentifier ->
+  Position ->
+  t Session (Maybe Hover)
+getHover doc pos = do
+  let params = HoverParams doc pos Nothing
+  ResponseMessage _ rspLid res <- lift $ request STextDocumentHover params
+  case res of
+    Right x -> pure x
+    Left err -> do
+      logWarning $ "Error id " <> show rspLid <> ": " <> show err
+      liftIO $ sleep 1
+      logWarning "Retrying..."
+      getHover doc pos
+
+getDefinitions ::
+  ( MonadReader env (t Session),
+    MonadIO (t Session),
+    MonadTrans t,
+    HasLog env Message (t Session)
+  ) =>
+  TextDocumentIdentifier ->
+  Position ->
+  t Session ([Location] |? [LocationLink])
+getDefinitions doc pos = do
+  let params = DefinitionParams doc pos Nothing Nothing
+  ResponseMessage _ rspLid res <- lift $ request STextDocumentDefinition params
+  case res of
+    Right (InL loc) -> pure (InL [loc])
+    Right (InR (InL (List locs))) -> pure (InL locs)
+    Right (InR (InR (List locLinks))) -> pure (InR locLinks)
+    Left err -> do
+      logWarning $ "Error id " <> show rspLid <> ": " <> show err
+      liftIO $ sleep 1
+      logWarning "Retrying..."
+      getDefinitions doc pos
+
 instance Craftable DocumentSymbol where
   craft env@BuildEnv {..} doc DocumentSymbol {..} = do
-    let pos = _selectionRange ^. start
+    let pos = over character (+ 1) $ _selectionRange ^. start
     hover <- getHover doc pos
     definitions <- getDefinitions doc pos
+
     case (hover, _children) of
       (Nothing, Nothing) -> pure []
       (Nothing, Just (List cs)) -> craft env doc cs
-      (Just hover, Nothing) ->
+      (Just hover, Nothing) -> do
         pure
           [ Entry
               { _hover = hover,
@@ -98,7 +156,7 @@ instance Craftable DocumentSymbol where
                 _rootPath = buildEnvRootPath
               }
           ]
-      (Just hover, Just (List cs)) ->
+      (Just hover, Just (List cs)) -> do
         ( Entry
             { _hover = hover,
               _definitions = map toDefinition $ uncozip definitions,
@@ -106,7 +164,7 @@ instance Craftable DocumentSymbol where
               _rootPath = buildEnvRootPath
             }
             :
-        )
+          )
           <$> craft env doc cs
 
 instance Craftable SymbolInformation where
@@ -116,7 +174,7 @@ instance Craftable SymbolInformation where
     definitions <- getDefinitions doc pos
     case hover of
       Nothing -> pure []
-      Just hover ->
+      Just hover -> do
         pure
           [ Entry
               { _hover = hover,
