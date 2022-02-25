@@ -7,7 +7,7 @@
 				"sisku_config.json"
 			],
 			"exclude_patterns": [],
-			"command": "test-server",
+			"command": "cabal exec test-server",
 			"extensions": [
 				".test"
 			]
