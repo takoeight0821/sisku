@@ -89,8 +89,7 @@ library
       Glob
     , aeson
     , async
-    , base >=4.7 && <5
-    , co-log
+    , base
     , containers
     , exceptions
     , extra
@@ -104,7 +103,7 @@ library
     , optparse-applicative
     , pretty-simple
     , process
-    , relude
+    , relude >=1.0
     , req
     , safe-exceptions
     , servant
@@ -171,8 +170,7 @@ executable sisku
       Glob
     , aeson
     , async
-    , base >=4.7 && <5
-    , co-log
+    , base
     , containers
     , exceptions
     , extra
@@ -186,7 +184,7 @@ executable sisku
     , optparse-applicative
     , pretty-simple
     , process
-    , relude
+    , relude >=1.0
     , req
     , safe-exceptions
     , servant
@@ -255,8 +253,7 @@ test-suite sisku-test
       Glob
     , aeson
     , async
-    , base >=4.7 && <5
-    , co-log
+    , base
     , containers
     , exceptions
     , extra
@@ -270,7 +267,7 @@ test-suite sisku-test
     , optparse-applicative
     , pretty-simple
     , process
-    , relude
+    , relude >=1.0
     , req
     , safe-exceptions
     , servant

@@ -1,14 +1,15 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft (Hovercraft (..), Page (..), Entry (..), entries, toDefinition, prettyDefinition, writeHovercraft, pageDocument) where
+module Hovercraft where
 
 import Config
-import Control.Lens (imap, (^.))
+import Control.Lens ((^.))
 import Control.Lens.TH
 import Data.Aeson
 import qualified Data.Aeson as Aeson
 import Language.LSP.Types hiding (line)
-import Language.LSP.Types.Lens (character, line, start)
+import Language.LSP.Types.Lens
 import Relude
 import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import System.FilePath ((</>))
@@ -17,18 +18,18 @@ data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Show, Generic)
 
 fromLocation :: Location -> Definition
-fromLocation Location {_uri = uri, _range = range} = Definition uri range
+fromLocation Location {_uri, _range} = Definition _uri _range
 
 fromLocationLink :: LocationLink -> Definition
-fromLocationLink LocationLink {_targetUri = uri, _targetRange = range} = Definition uri range
+fromLocationLink LocationLink {_targetUri, _targetRange} = Definition _targetUri _targetRange
 
 toDefinition :: Location |? LocationLink -> Definition
 toDefinition (InL loc@Location {}) = fromLocation loc
 toDefinition (InR loc@LocationLink {}) = fromLocationLink loc
 
 prettyDefinition :: Definition -> Text
-prettyDefinition Definition {_uri = uri, _range = range} =
-  getUri uri <> ":" <> show (range ^. start . line) <> ":" <> show (range ^. start . character)
+prettyDefinition Definition {_uri, _range} =
+  getUri _uri <> ":" <> show (_range ^. start . line) <> ":" <> show (_range ^. start . character)
 
 instance ToJSON Definition where
   toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
@@ -55,6 +56,8 @@ instance ToJSON Entry where
 instance FromJSON Entry where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
+makeFieldsNoPrefix ''Entry
+
 newtype Page = Page {_entries :: [Entry]}
   deriving stock (Show, Generic)
 
@@ -65,18 +68,20 @@ instance ToJSON Page where
 instance FromJSON Page where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
-makeLenses ''Page
+makeFieldsNoPrefix ''Page
 
 pageDocument :: Page -> TextDocumentIdentifier
 pageDocument Page {_entries = e : _} = _document e
 pageDocument _ = error "pageDocument: no entries"
 
-data Hovercraft = Hovercraft {projectId :: Text, pages :: [Page]}
+data Hovercraft = Hovercraft {_projectId :: Text, _pages :: [Page]}
   deriving stock (Show, Generic)
 
 instance ToJSON Hovercraft
 
 instance FromJSON Hovercraft
+
+makeFieldsNoPrefix ''Hovercraft
 
 -- | Get XDG_DATA_HOME
 getDataHome :: IO FilePath
@@ -87,5 +92,5 @@ writeHovercraft :: SiskuConfig -> Hovercraft -> IO ()
 writeHovercraft config hc = do
   dataHome <- getDataHome
   createDirectoryIfMissing True dataHome
-  let file = dataHome </> (toString (config ^. Config.projectId) <> ".json")
+  let file = dataHome </> (toString (config ^. projectId) <> ".json")
   Aeson.encodeFile file hc
