@@ -1,0 +1,16 @@
+{
+	"projectId": "com.github.takoeight0821.sisku.test",
+	"lspSettings": {
+		"test": {
+			"language": "test",
+			"root_uri_patterns": [
+				"sisku_config.json"
+			],
+			"exclude_patterns": [],
+			"command": "test-server",
+			"extensions": [
+				".test"
+			]
+		}
+	}
+}

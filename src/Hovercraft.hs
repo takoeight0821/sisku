@@ -88,9 +88,10 @@ getDataHome :: IO FilePath
 getDataHome = getXdgDirectory XdgData "sisku/hovercraft"
 
 -- | Write hovercraft to file
-writeHovercraft :: SiskuConfig -> Hovercraft -> IO ()
-writeHovercraft config hc = do
+writeHovercraft :: SiskuConfig -> Maybe FilePath -> Hovercraft -> IO ()
+writeHovercraft config Nothing hc = do
   dataHome <- getDataHome
   createDirectoryIfMissing True dataHome
   let file = dataHome </> (toString (config ^. projectId) <> ".json")
   Aeson.encodeFile file hc
+writeHovercraft _ (Just file) hc = Aeson.encodeFile file hc

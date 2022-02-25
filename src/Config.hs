@@ -55,10 +55,23 @@ data LspSetting = LspSetting
   deriving stock (Show, Eq, Ord, Generic)
 
 instance ToJSON LspSetting where
-  toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
+  toJSON LspSetting {..} =
+    object
+      [ "language" .= _language,
+        "root_uri_patterns" .= _rootUriPatterns,
+        "exclude_patterns" .= _excludePatterns,
+        "command" .= _command,
+        "extensions" .= _extensions
+      ]
 
 instance FromJSON LspSetting where
-  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+  parseJSON = withObject "LspSetting" $ \v -> do
+    _language <- v .: "language"
+    _rootUriPatterns <- v .: "root_uri_patterns"
+    _excludePatterns <- v .: "exclude_patterns"
+    _command <- v .: "command"
+    _extensions <- v .: "extensions"
+    pure LspSetting {..}
 
 makeFieldsNoPrefix ''SiskuConfig
 makeFieldsNoPrefix ''LspSetting

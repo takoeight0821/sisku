@@ -2,6 +2,8 @@ cradle:
   cabal:
     - path: "src"
       component: "lib:sisku"
+    - path: "app/test-server"
+      component: "sisku:exe:test-server"
     - path: "app"
       component: "sisku:exe:sisku"
     - path: "test"

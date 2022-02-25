@@ -198,6 +198,89 @@ executable sisku
     , warp
   default-language: Haskell2010
 
+executable test-server
+  main-is: Main.hs
+  other-modules:
+      Paths_sisku
+  hs-source-dirs:
+      app/test-server
+  default-extensions:
+      BangPatterns
+      BinaryLiterals
+      BlockArguments
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingStrategies
+      DoAndIfThenElse
+      EmptyDataDecls
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      InstanceSigs
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      MultiWayIf
+      NamedFieldPuns
+      NoImplicitPrelude
+      OverloadedStrings
+      PartialTypeSignatures
+      PatternGuards
+      PolyKinds
+      RankNTypes
+      RecordWildCards
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeSynonymInstances
+      TypeOperators
+      ViewPatterns
+      StrictData
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -Wmissing-deriving-strategies -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Glob
+    , aeson
+    , async
+    , base
+    , containers
+    , exceptions
+    , extra
+    , fgl
+    , filepath
+    , flow
+    , lens
+    , lens-aeson
+    , lsp
+    , lsp-test
+    , lsp-types
+    , optparse-applicative
+    , pretty-simple
+    , process
+    , relude >=1.0
+    , req
+    , safe-exceptions
+    , servant
+    , servant-server
+    , sisku
+    , text
+    , unliftio
+    , unordered-containers
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010
+
 test-suite sisku-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs

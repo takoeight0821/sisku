@@ -117,6 +117,16 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - sisku
+  test-server:
+    main: Main.hs
+    source-dirs: app/test-server
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - sisku
+      - lsp
 
 tests:
   sisku-test:
