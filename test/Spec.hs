@@ -23,7 +23,7 @@ initialize :: IO (FilePath, Uri)
 initialize = do
   -- Generate a hovercraft file for testcases/hello.test.
   testcase <- makeAbsolute "test/testcases/hello.test"
-  callProcess "stack" ["exec", "--", "sisku", "index-lsp", testcase, "--output", testcase ++ ".json", "--config", "test/testcases/sisku_config.json"]
+  callProcess "sisku" ["index-lsp", testcase, "--output", testcase ++ ".json", "--config", "test/testcases/sisku_config.json"]
   let rootPath = takeDirectory testcase
   pure (rootPath, Uri {getUri = toText $ "file://" <> testcase})
 
