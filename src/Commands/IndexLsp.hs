@@ -1,4 +1,4 @@
-module Commands.IndexLsp (parser) where
+module Commands.IndexLsp (cmd, Options (..), parser) where
 
 import Config
 import Hovercraft (writeHovercraft)

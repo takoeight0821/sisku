@@ -138,3 +138,4 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - sisku
+      - hspec

@@ -15,7 +15,7 @@ import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing,
 import System.FilePath ((</>))
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
-  deriving stock (Show, Generic)
+  deriving stock (Eq, Show, Generic)
 
 fromLocation :: Location -> Definition
 fromLocation Location {_uri, _range} = Definition _uri _range
@@ -47,7 +47,7 @@ data Entry = Entry
     _moniker :: Value,
     _rootPath :: FilePath
   }
-  deriving stock (Show, Generic)
+  deriving stock (Eq, Show, Generic)
 
 instance ToJSON Entry where
   toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
@@ -59,7 +59,7 @@ instance FromJSON Entry where
 makeFieldsNoPrefix ''Entry
 
 newtype Page = Page {_entries :: [Entry]}
-  deriving stock (Show, Generic)
+  deriving stock (Eq, Show, Generic)
 
 instance ToJSON Page where
   toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
@@ -75,7 +75,7 @@ pageDocument Page {_entries = e : _} = _document e
 pageDocument _ = error "pageDocument: no entries"
 
 data Hovercraft = Hovercraft {_projectId :: Text, _pages :: [Page]}
-  deriving stock (Show, Generic)
+  deriving stock (Eq, Show, Generic)
 
 instance ToJSON Hovercraft
 
