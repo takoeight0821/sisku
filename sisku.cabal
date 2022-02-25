@@ -90,7 +90,6 @@ library
     , aeson
     , async
     , base
-    , co-log
     , containers
     , exceptions
     , extra
@@ -104,7 +103,7 @@ library
     , optparse-applicative
     , pretty-simple
     , process
-    , relude
+    , relude >=1.0
     , req
     , safe-exceptions
     , servant
@@ -172,7 +171,6 @@ executable sisku
     , aeson
     , async
     , base
-    , co-log
     , containers
     , exceptions
     , extra
@@ -186,7 +184,7 @@ executable sisku
     , optparse-applicative
     , pretty-simple
     , process
-    , relude
+    , relude >=1.0
     , req
     , safe-exceptions
     , servant
@@ -256,7 +254,6 @@ test-suite sisku-test
     , aeson
     , async
     , base
-    , co-log
     , containers
     , exceptions
     , extra
@@ -270,7 +267,7 @@ test-suite sisku-test
     , optparse-applicative
     , pretty-simple
     , process
-    , relude
+    , relude >=1.0
     , req
     , safe-exceptions
     , servant

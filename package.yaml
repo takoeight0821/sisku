@@ -1,14 +1,14 @@
-name:                sisku
-version:             0.1.0.0
-github:              "takoeight0821/sisku"
-license:             BSD3
-author:              "Yuya KONO"
-maintainer:          "takohati0821@gmail.com"
-copyright:           "2021 Yuya KONO"
+name: sisku
+version: 0.1.0.0
+github: "takoeight0821/sisku"
+license: BSD3
+author: "Yuya KONO"
+maintainer: "takohati0821@gmail.com"
+copyright: "2021 Yuya KONO"
 
 extra-source-files:
-- README.md
-- ChangeLog.md
+  - README.md
+  - ChangeLog.md
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -17,38 +17,37 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/takoeight0821/sisku#readme>
+description: Please see the README on GitHub at <https://github.com/takoeight0821/sisku#readme>
 
 dependencies:
-- aeson
-- async
-- base # >= 4.7 && < 5
-- containers
-- co-log
-- unordered-containers
-- extra
-- exceptions
-- fgl
-- filepath
-- flow
-- Glob
-- lens
-- lens-aeson
-- lsp-test
-- lsp-types
-- optparse-applicative
-- pretty-simple
-- process
-- relude
-- text
-- safe-exceptions
-- req
-- unliftio
-- servant
-- servant-server
-- wai
-- warp
-- wai-extra
+  - aeson
+  - async
+  - base # >= 4.7 && < 5
+  - containers
+  - unordered-containers
+  - extra
+  - exceptions
+  - fgl
+  - filepath
+  - flow
+  - Glob
+  - lens
+  - lens-aeson
+  - lsp-test
+  - lsp-types
+  - optparse-applicative
+  - pretty-simple
+  - process
+  - relude >= 1.0
+  - text
+  - safe-exceptions
+  - req
+  - unliftio
+  - servant
+  - servant-server
+  - wai
+  - warp
+  - wai-extra
 
 ghc-options:
   - -Wall
@@ -110,22 +109,22 @@ library:
 
 executables:
   sisku:
-    main:                Main.hs
-    source-dirs:         app
+    main: Main.hs
+    source-dirs: app
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - sisku
+      - sisku
 
 tests:
   sisku-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - sisku
+      - sisku

@@ -4,7 +4,8 @@ module Config where
 
 import Control.Lens.TH (makeFieldsNoPrefix)
 import Data.Aeson
-import qualified Data.HashMap.Strict as HashMap
+import qualified Data.Aeson.Key as Key
+import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Map as Map
 import Language.LSP.Types.Lens
 import Relude
@@ -41,7 +42,7 @@ instance ToJSON LspSettings where
 
 instance FromJSON LspSettings where
   parseJSON = withObject "LspSettings" $ \o ->
-    LspSettings <$> (Map.fromList <$> mapM (\(k, v) -> (k,) <$> parseJSON v) (HashMap.toList o))
+    LspSettings <$> (Map.fromList <$> mapM (\(k, v) -> (Key.toText k,) <$> parseJSON v) (KeyMap.toList o))
 
 -- | Configuration for LSP.
 data LspSetting = LspSetting
