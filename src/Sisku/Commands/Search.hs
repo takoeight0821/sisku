@@ -1,8 +1,8 @@
-module Commands.Search (parser) where
+module Sisku.Commands.Search (parser) where
 
 import Options.Applicative
 import Relude
-import Search
+import Sisku.Search
 
 data Options = Options
   { query :: Text,

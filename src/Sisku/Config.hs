@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Config where
+module Sisku.Config where
 
 import Control.Lens.TH (makeFieldsNoPrefix)
 import Data.Aeson

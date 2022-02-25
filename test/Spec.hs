@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Commands.IndexLsp (Options (Options, configFilePath, entryFilePath, outputFilePath))
-import qualified Commands.IndexLsp as IndexLsp
 import Data.Aeson (Value (Null))
 import qualified Data.Aeson as Aeson
-import Hovercraft
 import Language.LSP.Types
 import Relude
+import Sisku.Commands.IndexLsp (Options (Options, configFilePath, entryFilePath, outputFilePath))
+import qualified Sisku.Commands.IndexLsp as IndexLsp
+import Sisku.Hovercraft
 import System.Directory.Extra (makeAbsolute)
 import System.FilePath
 import Test.Hspec

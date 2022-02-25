@@ -1,9 +1,8 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft where
+module Sisku.Hovercraft where
 
-import Config
 import Control.Lens ((^.))
 import Control.Lens.TH
 import Data.Aeson
@@ -11,6 +10,7 @@ import qualified Data.Aeson as Aeson
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens
 import Relude
+import Sisku.Config
 import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import System.FilePath ((</>))
 

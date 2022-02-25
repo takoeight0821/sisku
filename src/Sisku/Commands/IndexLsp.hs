@@ -1,10 +1,10 @@
-module Commands.IndexLsp (cmd, Options (..), parser) where
+module Sisku.Commands.IndexLsp (cmd, Options (..), parser) where
 
-import Config
-import Hovercraft (writeHovercraft)
-import Lsp (buildHovercraft, generateBuildEnv)
 import Options.Applicative
 import Relude
+import Sisku.Config
+import Sisku.Hovercraft (writeHovercraft)
+import Sisku.Lsp (buildHovercraft, generateBuildEnv)
 
 data Options = Options
   { entryFilePath :: FilePath,

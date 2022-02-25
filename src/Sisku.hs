@@ -1,5 +1,5 @@
 module Sisku (loadLsifFromFile, indexToHovercraft, BuildEnv (..), buildHovercraft, Hovercraft (..)) where
 
-import Hovercraft
-import Lsif
-import Lsp
+import Sisku.Hovercraft
+import Sisku.Lsif
+import Sisku.Lsp

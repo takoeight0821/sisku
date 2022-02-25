@@ -1,9 +1,9 @@
-module Commands.Server (parser) where
+module Sisku.Commands.Server (parser) where
 
 import Network.Wai.Handler.Warp (run)
 import Options.Applicative
 import Relude
-import Server (app)
+import Sisku.Server (app)
 import UnliftIO.Directory (XdgDirectory (XdgData), doesDirectoryExist, getXdgDirectory)
 
 newtype Options = Options

@@ -1,14 +1,16 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
--- | Parser for gen-elastic-index command
-module Commands.GenElasticIndex (
-    parser
-) where
 
-import Relude
-import Hovercraft
+-- | Parser for gen-elastic-index command
+module Sisku.Commands.GenElasticIndex
+  ( parser,
+  )
+where
+
+import Control.Lens (ifor_)
 import qualified Data.Aeson as Aeson
 import Options.Applicative
-import Control.Lens (ifor_)
+import Relude
+import Sisku.Hovercraft
 import System.IO (hPutStrLn)
 
 data Options = Options
@@ -29,7 +31,7 @@ cmd Options {..} = do
 
 opts :: Parser Options
 opts =
-  Options 
+  Options
     <$> strOption (short 'i' <> long "input" <> metavar "<file>" <> help "Hovercraft index file" <> value "hovercraft.json")
     <*> strOption (short 'o' <> long "output" <> metavar "<file>" <> help "Write output to <file>" <> value "index.jsonl")
 

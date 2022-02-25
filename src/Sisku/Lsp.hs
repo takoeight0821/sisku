@@ -1,18 +1,18 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
+module Sisku.Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
 
-import Config
 import Control.Lens hiding (List, children, (.=), (??))
 import Data.Aeson
 import qualified Data.Map as Map
 import Data.Traversable
-import Hovercraft hiding (definitions)
 import Language.LSP.Test hiding (getDefinitions, getDocumentSymbols, getHover)
 import Language.LSP.Types hiding (Message)
 import Language.LSP.Types.Lens hiding (hover, to)
 import Relude
+import Sisku.Config
+import Sisku.Hovercraft hiding (definitions)
 import System.Directory.Extra (doesFileExist, makeAbsolute)
 import System.FilePath
 import System.FilePath.Glob
