@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Commands.IndexLsp (Options (Options, configFilePath, entryFilePath, outputFilePath))
+import qualified Commands.IndexLsp as IndexLsp
 import Data.Aeson (Value (Null))
 import qualified Data.Aeson as Aeson
 import Hovercraft
@@ -7,7 +9,6 @@ import Language.LSP.Types
 import Relude
 import System.Directory.Extra (makeAbsolute)
 import System.FilePath
-import System.Process (callProcess)
 import Test.Hspec
 
 main :: IO ()
@@ -23,7 +24,12 @@ initialize :: IO (FilePath, Uri)
 initialize = do
   -- Generate a hovercraft file for testcases/hello.test.
   testcase <- makeAbsolute "test/testcases/hello.test"
-  callProcess "sisku" ["index-lsp", testcase, "--output", testcase ++ ".json", "--config", "test/testcases/sisku_config.json"]
+  IndexLsp.cmd
+    Options
+      { entryFilePath = testcase,
+        configFilePath = "test/testcases/sisku_config.json",
+        outputFilePath = Just $ testcase <> ".json"
+      }
   let rootPath = takeDirectory testcase
   pure (rootPath, Uri {getUri = toText $ "file://" <> testcase})
 

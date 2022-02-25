@@ -35,6 +35,5 @@ jobs:
       - name: Build
         run: |
           cabal build --enable-tests --enable-benchmarks all
-          cabal install --overwrite-policy=always
       - name: Run tests
         run: cabal test all
