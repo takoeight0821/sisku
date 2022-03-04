@@ -10,8 +10,7 @@ import Sisku.Indexer.Common
 import Sisku.Indexer.MiddlewareExample (exampleLanguageClient)
 
 data Options = Options
-  { entryFilePath :: FilePath,
-    configFilePath :: FilePath,
+  { configFilePath :: FilePath,
     outputFilePath :: Maybe FilePath
   }
 
@@ -20,14 +19,13 @@ cmd Options {..} = do
   config <- loadConfig configFilePath
   runSiskuApp config do
     let CommonIndexer indexer = build exampleLanguageClient
-    hovercraft <- indexer entryFilePath
+    hovercraft <- indexer
     writeHovercraft outputFilePath hovercraft
 
 opts :: Parser Options
 opts =
   Options
-    <$> strArgument (metavar "<entry file>")
-    <*> strOption (short 'c' <> long "config" <> metavar "<config>" <> help "Path to the config file" <> value "sisku_config.json")
+    <$> strOption (short 'c' <> long "config" <> metavar "<config>" <> help "Path to the config file" <> value "sisku_config.json")
     <*> optional (strOption (short 'o' <> long "output" <> metavar "<output>" <> help "Path to the output file"))
 
 parser :: Mod CommandFields (IO ())

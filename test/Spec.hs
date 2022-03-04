@@ -4,10 +4,10 @@ import Data.Aeson (Value (Null))
 import qualified Data.Aeson as Aeson
 import Language.LSP.Types
 import Relude
-import Sisku.Commands.IndexLsp (Options (Options, configFilePath, entryFilePath, outputFilePath))
+import Sisku.Commands.IndexLsp (Options (Options, configFilePath, outputFilePath))
 import qualified Sisku.Commands.IndexLsp as IndexLsp
 import Sisku.Hovercraft
-import System.Directory.Extra (makeAbsolute)
+import System.Directory.Extra (getCurrentDirectory, makeAbsolute, setCurrentDirectory)
 import System.FilePath
 import Test.Hspec
 
@@ -22,15 +22,18 @@ main = do
 -- | Initialize the test suite.
 initialize :: IO (FilePath, Uri)
 initialize = do
+  currentDirectory <- getCurrentDirectory
+  setCurrentDirectory "test/testcases"
   -- Generate a hovercraft file for testcases/hello.test.
-  testcase <- makeAbsolute "test/testcases/hello.test"
+  testcase <- makeAbsolute "hello.test"
   IndexLsp.cmd
     Options
-      { entryFilePath = testcase,
-        configFilePath = "test/testcases/sisku_config.json",
+      { configFilePath = "sisku_config.json",
         outputFilePath = Just $ testcase <> ".json"
       }
   let rootPath = takeDirectory testcase
+
+  setCurrentDirectory currentDirectory
   pure (rootPath, Uri {getUri = toText $ "file://" <> testcase})
 
 helloTestHovercraft :: FilePath -> Uri -> Hovercraft

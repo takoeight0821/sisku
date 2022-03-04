@@ -3,21 +3,22 @@
 
 module Sisku.Indexer.Common (CommonIndexer (..)) where
 
-import Control.Lens (over, view, (^.))
+import Control.Lens (At (at), over, view, (^.))
 import Control.Lens.TH
 import Data.Aeson (Value (Null))
+import qualified Data.Map as Map
 import Data.Traversable (for)
 import Language.LSP.Test (Session, closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
 import Language.LSP.Types (DocumentSymbol (..), HoverContents (HoverContents), List (List), SymbolInformation (..), TextDocumentIdentifier)
-import Language.LSP.Types.Lens (HasCharacter (character), HasContents (contents), HasRange (range), HasStart (start), HasValue (value))
+import Language.LSP.Types.Lens (HasCharacter (character), HasCommand (command), HasContents (contents), HasRange (range), HasStart (start), HasValue (value))
 import Relude
 import Sisku.App
-import Sisku.Config (HasProjectId (..))
+import Sisku.Config (HasExcludePatterns (excludePatterns), HasExtensions (extensions), HasProjectId (..), HasRootUriPatterns (rootUriPatterns), LspSetting)
 import Sisku.Hovercraft
 import Sisku.Indexer
 import qualified Sisku.Lsp as Lsp
-import System.Directory.Extra (makeAbsolute)
-import System.FilePath (makeRelative, normalise, takeExtension)
+import System.Directory.Extra (doesFileExist, getCurrentDirectory, makeAbsolute)
+import System.FilePath (isValid, joinPath, makeRelative, normalise, splitPath, (</>))
 import System.FilePath.Glob (glob)
 
 data Env = Env
@@ -32,10 +33,18 @@ data Env = Env
 
 makeFieldsNoPrefix ''Env
 
-newtype CommonIndexer a = CommonIndexer {unCommonIndexer :: FilePath -> SiskuApp a}
+newtype CommonIndexer a = CommonIndexer {unCommonIndexer :: SiskuApp a}
 
 instance Indexer CommonIndexer where
-  build lc = CommonIndexer (buildHovercraft <=< generateEnv lc)
+  build lc = CommonIndexer do
+    languages <- Map.keys <$> getLspSettingMap
+    envs <- generateAllEnvs (map (,lc) languages)
+    hs <- traverse (\(_, env) -> buildHovercraft env) envs
+    pure $ mergeHovercraft hs
+    where
+      mergeHovercraft hs@(Hovercraft {_projectId} : _) = foldr merge Hovercraft {_projectId = _projectId, _pages = []} hs
+      mergeHovercraft [] = error "mergeHovercraft: empty list"
+      merge Hovercraft {_projectId, _pages = ps1} Hovercraft {_pages = ps2} = Hovercraft {_projectId, _pages = ps1 <> ps2}
 
 -- * Build hovercrafts via LSP
 
@@ -66,17 +75,38 @@ buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
       closeDoc doc
       pure page
 
--- | Generate a `Env` from the given file path.
-generateEnv :: (MonadSiskuApp m, MonadIO m) => LanguageClient -> FilePath -> m Env
-generateEnv _languageClient entryFilePath = do
-  entryFilePath <- liftIO $ makeAbsolute entryFilePath
-  _language <- Lsp.detectLanguage entryFilePath
-  _rootPath <- Lsp.searchRootPath _language entryFilePath
-  _sourceFiles <- fmap normalise <$> liftIO (glob (_rootPath <> "/**/*" <> takeExtension entryFilePath))
-  _sourceFiles <- Lsp.filterExcluded _language _sourceFiles
-  _command <- Lsp.getCommand _language
-  _projectId <- view projectId <$> getConfig
-  pure Env {..}
+-- | Generate all type of 'Env' for given 'LanguageClient's.
+generateAllEnvs :: (MonadSiskuApp m, MonadIO m) => [(Text, LanguageClient)] -> m [(Text, Env)]
+generateAllEnvs lcs = do
+  menvs <- for lcs \(lang, _languageClient) -> do
+    let _language = lang
+    lspSetting <- fromMaybe (error $ "Language " <> lang <> " not found") . view (at lang) <$> getLspSettingMap
+    pwd <- liftIO getCurrentDirectory
+    mRootPath <- findRootPath lang (lspSetting ^. rootUriPatterns) [pwd]
+    case mRootPath of
+      Nothing -> pure Nothing
+      Just _rootPath -> do
+        _sourceFiles <- findSourceFiles lspSetting _rootPath
+        let _command = toString $ lspSetting ^. command
+        _projectId <- view projectId <$> getConfig
+        pure $ Just (lang, Env {..})
+  pure $ catMaybes menvs
+  where
+    findRootPath _ _ [] = pure Nothing
+    findRootPath lang patterns (p : ps) = do
+      isRootPath <- anyM (\pattern -> liftIO $ doesFileExist $ p </> toString pattern) patterns
+      if isRootPath
+        then pure $ Just p
+        else findRootPath lang patterns $ case joinPath <$> viaNonEmpty init (splitPath p) of
+          Just parentPath | isValid parentPath && parentPath `notElem` ps -> parentPath : ps
+          _ -> ps
+    findSourceFiles :: (MonadSiskuApp m, MonadIO m) => LspSetting -> FilePath -> m [FilePath]
+    findSourceFiles lspSetting rootPath = do
+      let exts = lspSetting ^. extensions
+      concat <$> for exts \ext -> do
+        files <- fmap normalise <$> liftIO (glob (rootPath <> "/**/*" <> toString ext))
+        excludedFiles <- liftIO $ traverse makeAbsolute . concat =<< traverse (glob . toString) (lspSetting ^. excludePatterns)
+        pure $ filter (`notElem` excludedFiles) files
 
 class Craftable a where
   craft :: Env -> TextDocumentIdentifier -> a -> Session [Entry]
