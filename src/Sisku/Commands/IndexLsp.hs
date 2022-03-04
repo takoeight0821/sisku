@@ -5,7 +5,9 @@ import Relude
 import Sisku.App
 import Sisku.Config
 import Sisku.Hovercraft (writeHovercraft)
-import Sisku.Lsp (buildHovercraft, generateBuildEnv)
+import Sisku.Indexer
+import Sisku.Indexer.Common
+import Sisku.Indexer.MiddlewareExample (exampleLanguageClient)
 
 data Options = Options
   { entryFilePath :: FilePath,
@@ -17,8 +19,8 @@ cmd :: Options -> IO ()
 cmd Options {..} = do
   config <- loadConfig configFilePath
   runSiskuApp config do
-    buildEnv <- generateBuildEnv entryFilePath
-    hovercraft <- buildHovercraft buildEnv
+    let CommonIndexer indexer = build exampleLanguageClient
+    hovercraft <- indexer entryFilePath
     writeHovercraft outputFilePath hovercraft
 
 opts :: Parser Options

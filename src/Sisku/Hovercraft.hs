@@ -78,9 +78,12 @@ pageDocument _ = error "pageDocument: no entries"
 data Hovercraft = Hovercraft {_projectId :: Text, _pages :: [Page]}
   deriving stock (Eq, Show, Generic)
 
-instance ToJSON Hovercraft
+instance ToJSON Hovercraft where
+  toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
+  toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
 
-instance FromJSON Hovercraft
+instance FromJSON Hovercraft where
+  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
 makeFieldsNoPrefix ''Hovercraft
 
