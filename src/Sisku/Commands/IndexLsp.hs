@@ -7,6 +7,7 @@ import Sisku.Config
 import Sisku.Hovercraft (writeHovercraft)
 import Sisku.Indexer
 import Sisku.Indexer.Common
+import Sisku.Indexer.MiddlewareExample (exampleLanguageClient)
 
 data Options = Options
   { entryFilePath :: FilePath,
@@ -18,7 +19,7 @@ cmd :: Options -> IO ()
 cmd Options {..} = do
   config <- loadConfig configFilePath
   runSiskuApp config do
-    let CommonIndexer indexer = build
+    let CommonIndexer indexer = build exampleLanguageClient
     hovercraft <- indexer entryFilePath
     writeHovercraft outputFilePath hovercraft
 

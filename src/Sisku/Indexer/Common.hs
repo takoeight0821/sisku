@@ -15,7 +15,7 @@ import Sisku.App
 import Sisku.Config (HasProjectId (..))
 import Sisku.Hovercraft
 import Sisku.Indexer
-import Sisku.Lsp
+import qualified Sisku.Lsp as Lsp
 import System.Directory.Extra (makeAbsolute)
 import System.FilePath (makeRelative, normalise, takeExtension)
 import System.FilePath.Glob (glob)
@@ -25,7 +25,8 @@ data Env = Env
     _sourceFiles :: [FilePath],
     _rootPath :: FilePath,
     _language :: Text,
-    _projectId :: Text
+    _projectId :: Text,
+    _languageClient :: LanguageClient
   }
   deriving stock (Generic)
 
@@ -34,13 +35,13 @@ makeFieldsNoPrefix ''Env
 newtype CommonIndexer a = CommonIndexer {unCommonIndexer :: FilePath -> SiskuApp a}
 
 instance Indexer CommonIndexer where
-  build = CommonIndexer (buildHovercraft <=< generateEnv)
+  build lc = CommonIndexer (buildHovercraft <=< generateEnv lc)
 
 -- * Build hovercrafts via LSP
 
 -- | Build a hovercraft using LSP.
 buildHovercraft :: MonadIO m => Env -> m Hovercraft
-buildHovercraft env = do
+buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
   let config = defaultConfig
   hovercrafts <-
     liftIO $
@@ -66,14 +67,14 @@ buildHovercraft env = do
       pure page
 
 -- | Generate a `Env` from the given file path.
-generateEnv :: (MonadSiskuApp m, MonadIO m) => FilePath -> m Env
-generateEnv entryFilePath = do
+generateEnv :: (MonadSiskuApp m, MonadIO m) => LanguageClient -> FilePath -> m Env
+generateEnv _languageClient entryFilePath = do
   entryFilePath <- liftIO $ makeAbsolute entryFilePath
-  _language <- detectLanguage entryFilePath
-  _rootPath <- searchRootPath _language entryFilePath
+  _language <- Lsp.detectLanguage entryFilePath
+  _rootPath <- Lsp.searchRootPath _language entryFilePath
   _sourceFiles <- fmap normalise <$> liftIO (glob (_rootPath <> "/**/*" <> takeExtension entryFilePath))
-  _sourceFiles <- filterExcluded _language _sourceFiles
-  _command <- getCommand _language
+  _sourceFiles <- Lsp.filterExcluded _language _sourceFiles
+  _command <- Lsp.getCommand _language
   _projectId <- view projectId <$> getConfig
   pure Env {..}
 
@@ -84,7 +85,7 @@ instance Craftable a => Craftable [a] where
   craft env doc xs = concat <$> traverse (craft env doc) xs
 
 instance Craftable DocumentSymbol where
-  craft env doc DocumentSymbol {..} = do
+  craft env@Env {_languageClient = LanguageClient {..}} doc DocumentSymbol {..} = do
     let pos = over character (+ 1) $ _selectionRange ^. start
     mhover <- getHover doc pos
     definitions <- getDefinitions doc pos
@@ -98,7 +99,7 @@ instance Craftable DocumentSymbol where
               { _document = doc,
                 _projectId = env ^. projectId,
                 _hover = hover,
-                _definitions = map toDefinition $ uncozip definitions,
+                _definitions = map toDefinition $ Lsp.uncozip definitions,
                 _moniker = Null,
                 _rootPath = env ^. rootPath
               }
@@ -108,7 +109,7 @@ instance Craftable DocumentSymbol where
             { _document = doc,
               _projectId = env ^. projectId,
               _hover = hover,
-              _definitions = map toDefinition $ uncozip definitions,
+              _definitions = map toDefinition $ Lsp.uncozip definitions,
               _moniker = Null,
               _rootPath = env ^. rootPath
             }
@@ -117,7 +118,7 @@ instance Craftable DocumentSymbol where
           <$> craft env doc cs
 
 instance Craftable SymbolInformation where
-  craft env doc SymbolInformation {..} = do
+  craft env@Env {_languageClient = LanguageClient {..}} doc SymbolInformation {..} = do
     let pos = _location ^. range . start
     mhover <- getHover doc pos
     definitions <- getDefinitions doc pos
@@ -129,7 +130,7 @@ instance Craftable SymbolInformation where
               { _document = doc,
                 _projectId = env ^. projectId,
                 _hover = hover,
-                _definitions = map toDefinition $ uncozip definitions,
+                _definitions = map toDefinition $ Lsp.uncozip definitions,
                 _moniker = Null,
                 _rootPath = env ^. rootPath
               }
