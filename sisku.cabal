@@ -30,6 +30,8 @@ library
       Sisku.Commands.Server
       Sisku.Config
       Sisku.Hovercraft
+      Sisku.Indexer
+      Sisku.Indexer.Common
       Sisku.Lsp
       Sisku.Server
   other-modules:

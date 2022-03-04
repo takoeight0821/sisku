@@ -1,69 +1,20 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Sisku.Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv) where
+module Sisku.Lsp (getDocumentSymbols, getHover, getDefinitions, uncozip, detectLanguage, searchRootPath, filterExcluded, getCommand) where
 
 import Control.Lens hiding (List, children, (.=), (??))
-import Data.Aeson
 import qualified Data.Map as Map
-import Data.Traversable
 import Language.LSP.Test hiding (getDefinitions, getDocumentSymbols, getHover)
 import Language.LSP.Types hiding (Message)
 import Language.LSP.Types.Lens hiding (hover, to)
 import Relude
 import Sisku.App
 import Sisku.Config
-import Sisku.Hovercraft hiding (definitions)
 import System.Directory.Extra (doesFileExist, makeAbsolute)
 import System.FilePath
 import System.FilePath.Glob
 import System.Time.Extra (sleep)
-
-data BuildEnv = BuildEnv
-  { _command :: FilePath,
-    _sourceFiles :: [FilePath],
-    _rootPath :: FilePath,
-    _language :: Text,
-    _projectId :: Text
-  }
-  deriving stock (Generic)
-
-instance ToJSON BuildEnv where
-  toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
-
-instance FromJSON BuildEnv where
-  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
-
-makeFieldsNoPrefix ''BuildEnv
-
--- * Build hovercrafts via LSP
-
--- | Build a hovercraft using LSP.
-buildHovercraft :: MonadIO m => BuildEnv -> m Hovercraft
-buildHovercraft env = do
-  let config = defaultConfig
-  hovercrafts <-
-    liftIO $
-      runSessionWithConfig config (env ^. command) fullCaps (env ^. rootPath) $ do
-        fileList <- for (env ^. sourceFiles) $ \file -> do
-          doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
-          putTextLn $ toText $ "Opened " <> file
-          pure (file, doc)
-        for fileList $ uncurry seekFile
-  pure $ Hovercraft (env ^. projectId) hovercrafts
-  where
-    seekFile :: FilePath -> TextDocumentIdentifier -> Session Page
-    seekFile file doc = do
-      putTextLn $ toText $ "Seeking file " <> file
-      symbols <- getDocumentSymbols doc
-      putTextLn $ "Got symbols for " <> show file
-      page <-
-        Page
-          <$> case symbols of
-            Right symInfos -> craft env doc symInfos
-            Left docSymbols -> craft env doc docSymbols
-      closeDoc doc
-      pure page
 
 getDocumentSymbols :: TextDocumentIdentifier -> Session (Either [DocumentSymbol] [SymbolInformation])
 getDocumentSymbols doc = do
@@ -76,12 +27,6 @@ getDocumentSymbols doc = do
       liftIO $ sleep 1
       putTextLn "Retrying..."
       getDocumentSymbols doc
-
-class Craftable a where
-  craft :: BuildEnv -> TextDocumentIdentifier -> a -> Session [Entry]
-
-instance Craftable a => Craftable [a] where
-  craft env doc xs = concat <$> traverse (craft env doc) xs
 
 getHover :: TextDocumentIdentifier -> Position -> Session (Maybe Hover)
 getHover doc pos = do
@@ -107,75 +52,11 @@ getDefinitions doc pos = do
       putTextLn "Retrying..."
       getDefinitions doc pos
 
-instance Craftable DocumentSymbol where
-  craft env doc DocumentSymbol {..} = do
-    let pos = over character (+ 1) $ _selectionRange ^. start
-    mhover <- getHover doc pos
-    definitions <- getDefinitions doc pos
-
-    case (mhover, _children) of
-      (Nothing, Nothing) -> pure []
-      (Nothing, Just (List cs)) -> craft env doc cs
-      (Just hover, Nothing) -> do
-        pure
-          [ Entry
-              { _document = doc,
-                _projectId = env ^. projectId,
-                _hover = hover,
-                _definitions = map toDefinition $ uncozip definitions,
-                _moniker = Null,
-                _rootPath = env ^. rootPath
-              }
-          ]
-      (Just hover, Just (List cs)) -> do
-        ( Entry
-            { _document = doc,
-              _projectId = env ^. projectId,
-              _hover = hover,
-              _definitions = map toDefinition $ uncozip definitions,
-              _moniker = Null,
-              _rootPath = env ^. rootPath
-            }
-            :
-          )
-          <$> craft env doc cs
-
-instance Craftable SymbolInformation where
-  craft env doc SymbolInformation {..} = do
-    let pos = _location ^. range . start
-    mhover <- getHover doc pos
-    definitions <- getDefinitions doc pos
-    case mhover of
-      Nothing -> pure []
-      Just hover -> do
-        pure
-          [ Entry
-              { _document = doc,
-                _projectId = env ^. projectId,
-                _hover = hover,
-                _definitions = map toDefinition $ uncozip definitions,
-                _moniker = Null,
-                _rootPath = env ^. rootPath
-              }
-          ]
-
 uncozip :: ([a] |? [b]) -> [a |? b]
 uncozip (InL xs) = map InL xs
 uncozip (InR xs) = map InR xs
 
 -- * LSP helpers
-
--- | Generate a `BuildEnv` from the given file path.
-generateBuildEnv :: (MonadSiskuApp m, MonadIO m) => FilePath -> m BuildEnv
-generateBuildEnv filePath = do
-  filePath <- liftIO $ makeAbsolute filePath
-  _language <- detectLanguage filePath
-  _rootPath <- searchRootPath _language filePath
-  _sourceFiles <- fmap normalise <$> liftIO (glob (_rootPath <> "/**/*" <> takeExtension filePath))
-  _sourceFiles <- filterExcluded _language _sourceFiles
-  _command <- getCommand _language
-  _projectId <- view projectId <$> getConfig
-  pure BuildEnv {..}
 
 -- | Detect what programming language the given file is written in.
 detectLanguage :: (MonadSiskuApp m, MonadIO m) => FilePath -> m Text
