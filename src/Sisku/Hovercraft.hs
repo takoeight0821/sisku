@@ -88,7 +88,7 @@ getDataHome :: IO FilePath
 getDataHome = getXdgDirectory XdgData "sisku/hovercraft"
 
 -- | Write hovercraft to file
-writeHovercraft :: SiskuConfig -> Maybe FilePath -> Hovercraft -> IO ()
+writeHovercraft :: Config -> Maybe FilePath -> Hovercraft -> IO ()
 writeHovercraft config Nothing hc = do
   dataHome <- getDataHome
   createDirectoryIfMissing True dataHome

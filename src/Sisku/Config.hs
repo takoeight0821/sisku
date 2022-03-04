@@ -11,20 +11,20 @@ import Language.LSP.Types.Lens
 import Relude
 
 -- | Configuration for Sisku.
-data SiskuConfig = SiskuConfig
+data Config = Config
   { _projectId :: Text,
-    _lspSettings :: LspSettings
+    _lspSettings :: LspSettingMap
   }
   deriving stock (Show, Eq, Ord, Generic)
 
-instance ToJSON SiskuConfig where
+instance ToJSON Config where
   toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
 
-instance FromJSON SiskuConfig where
+instance FromJSON Config where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
 -- | Load configuration from file.
-loadConfig :: FilePath -> IO SiskuConfig
+loadConfig :: FilePath -> IO Config
 loadConfig configFile =
   readFileLBS configFile
     >>= ( \case
@@ -34,15 +34,15 @@ loadConfig configFile =
       . eitherDecode
 
 -- | LSP settings for corresponding language.
-newtype LspSettings = LspSettings {unwrapLspSettings :: Map Text LspSetting}
+newtype LspSettingMap = LspSettingMap {unwrapLspSettingMap :: Map Text LspSetting}
   deriving stock (Show, Eq, Ord, Generic)
 
-instance ToJSON LspSettings where
-  toJSON = toJSON . unwrapLspSettings
+instance ToJSON LspSettingMap where
+  toJSON = toJSON . unwrapLspSettingMap
 
-instance FromJSON LspSettings where
-  parseJSON = withObject "LspSettings" $ \o ->
-    LspSettings <$> (Map.fromList <$> mapM (\(k, v) -> (Key.toText k,) <$> parseJSON v) (KeyMap.toList o))
+instance FromJSON LspSettingMap where
+  parseJSON = withObject "LspSettingMap" $ \o ->
+    LspSettingMap <$> (Map.fromList <$> mapM (\(k, v) -> (Key.toText k,) <$> parseJSON v) (KeyMap.toList o))
 
 -- | Configuration for LSP.
 data LspSetting = LspSetting
@@ -73,5 +73,5 @@ instance FromJSON LspSetting where
     _extensions <- v .: "extensions"
     pure LspSetting {..}
 
-makeFieldsNoPrefix ''SiskuConfig
+makeFieldsNoPrefix ''Config
 makeFieldsNoPrefix ''LspSetting
