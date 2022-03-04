@@ -13,7 +13,7 @@ import Relude
 -- | Configuration for Sisku.
 data Config = Config
   { _projectId :: Text,
-    _lspSettings :: LspSettingMap
+    _lspSettingMap :: LspSettingMap
   }
   deriving stock (Show, Eq, Ord, Generic)
 

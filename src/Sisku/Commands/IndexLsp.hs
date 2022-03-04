@@ -2,6 +2,7 @@ module Sisku.Commands.IndexLsp (cmd, Options (..), parser) where
 
 import Options.Applicative
 import Relude
+import Sisku.App
 import Sisku.Config
 import Sisku.Hovercraft (writeHovercraft)
 import Sisku.Lsp (buildHovercraft, generateBuildEnv)
@@ -15,9 +16,10 @@ data Options = Options
 cmd :: Options -> IO ()
 cmd Options {..} = do
   config <- loadConfig configFilePath
-  buildEnv <- generateBuildEnv config entryFilePath
-  hovercraft <- buildHovercraft buildEnv
-  writeHovercraft config outputFilePath hovercraft
+  runSiskuApp config do
+    buildEnv <- generateBuildEnv entryFilePath
+    hovercraft <- buildHovercraft buildEnv
+    writeHovercraft outputFilePath hovercraft
 
 opts :: Parser Options
 opts =

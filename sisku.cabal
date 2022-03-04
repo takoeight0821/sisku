@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Sisku
+      Sisku.App
       Sisku.Commands.GenElasticIndex
       Sisku.Commands.IndexLsif
       Sisku.Commands.IndexLsp
