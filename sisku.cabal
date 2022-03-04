@@ -25,18 +25,12 @@ source-repository head
 
 library
   exposed-modules:
-      Sisku
       Sisku.App
-      Sisku.Commands.GenElasticIndex
-      Sisku.Commands.IndexLsif
       Sisku.Commands.IndexLsp
-      Sisku.Commands.Search
       Sisku.Commands.Server
       Sisku.Config
       Sisku.Hovercraft
-      Sisku.Lsif
       Sisku.Lsp
-      Sisku.Search
       Sisku.Server
   other-modules:
       Paths_sisku
