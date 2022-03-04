@@ -1,6 +1,6 @@
 {
 	"projectId": "com.github.takoeight0821.sisku.test",
-	"lspSettings": {
+	"lspSettingMap": {
 		"test": {
 			"language": "test",
 			"root_uri_patterns": [

@@ -1,9 +1,9 @@
-module Commands.IndexLsif (parser) where
+module Sisku.Commands.IndexLsif (parser) where
 
-import Relude
 import qualified Data.Aeson as Aeson
 import Options.Applicative
-import Lsif
+import Relude
+import Sisku.Lsif
 
 data IndexLsifOptions = IndexLsifOptions
   { lsifFilePath :: FilePath,

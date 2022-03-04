@@ -1,17 +1,17 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 -- | LSIF type definitions
-module Lsif (Index, loadLsifFromFile, indexToHovercraft) where
+module Sisku.Lsif (Index, loadLsifFromFile, indexToHovercraft) where
 
 import Control.Lens ((^?))
 import Data.Aeson
 import Data.Aeson.Lens
 import Data.Graph.Inductive
 import Flow ((|>))
-import Hovercraft
 import Language.LSP.Types
 import Relude
 import qualified Relude.Unsafe as Unsafe
+import Sisku.Hovercraft
 
 -- * LSIF
 

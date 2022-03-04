@@ -1,13 +1,13 @@
 {-# LANGUAGE TupleSections #-}
 
-module Server (app) where
+module Sisku.Server (app) where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
-import Hovercraft
 import Network.Wai.Middleware.Rewrite (rewriteRoot)
 import Relude
 import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp, type (:<|>) ((:<|>)), type (:>))
+import Sisku.Hovercraft
 import System.FilePath (takeBaseName, (</>))
 import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirectory)
 

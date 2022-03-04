@@ -1,10 +1,10 @@
-module Search (search) where
+module Sisku.Search (search) where
 
+import Control.Lens ((^.), (^?))
 import Data.Aeson
+import Data.Aeson.Lens
 import Network.HTTP.Req
 import Relude
-import Control.Lens ((^?), (^.))
-import Data.Aeson.Lens
 
 search :: Text -> Int -> Text -> IO ()
 search esFqdn esPort query = do
@@ -26,10 +26,9 @@ search esFqdn esPort query = do
             ]
     r <- req POST (http esFqdn /: "hovercraft" /: "_search") (ReqBodyJson payload) jsonResponse (port esPort)
     let response = responseBody r :: Value
-    let hits = toList $ response ^. key "hits" . key "hits". _Array
+    let hits = toList $ response ^. key "hits" . key "hits" . _Array
     let hovercrafts = mapMaybe (^? key "_source") hits
     for_ hovercrafts $ \hovercraft -> do
       case hovercraft ^? key "hover" . key "contents" . key "value" . _String of
         Nothing -> pure ()
         Just contents -> putTextLn contents
-      

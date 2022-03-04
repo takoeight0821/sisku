@@ -1,18 +1,19 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv, LspSettings (..)) where
+module Sisku.Lsp (buildHovercraft, BuildEnv (..), generateBuildEnv) where
 
-import Config
 import Control.Lens hiding (List, children, (.=), (??))
 import Data.Aeson
 import qualified Data.Map as Map
 import Data.Traversable
-import Hovercraft hiding (definitions)
 import Language.LSP.Test hiding (getDefinitions, getDocumentSymbols, getHover)
 import Language.LSP.Types hiding (Message)
 import Language.LSP.Types.Lens hiding (hover, to)
 import Relude
+import Sisku.App
+import Sisku.Config
+import Sisku.Hovercraft hiding (definitions)
 import System.Directory.Extra (doesFileExist, makeAbsolute)
 import System.FilePath
 import System.FilePath.Glob
@@ -38,16 +39,17 @@ makeFieldsNoPrefix ''BuildEnv
 -- * Build hovercrafts via LSP
 
 -- | Build a hovercraft using LSP.
-buildHovercraft :: BuildEnv -> IO Hovercraft
+buildHovercraft :: MonadIO m => BuildEnv -> m Hovercraft
 buildHovercraft env = do
   let config = defaultConfig
   hovercrafts <-
-    runSessionWithConfig config (env ^. command) fullCaps (env ^. rootPath) $ do
-      fileList <- for (env ^. sourceFiles) $ \file -> do
-        doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
-        putTextLn $ toText $ "Opened " <> file
-        pure (file, doc)
-      for fileList $ uncurry seekFile
+    liftIO $
+      runSessionWithConfig config (env ^. command) fullCaps (env ^. rootPath) $ do
+        fileList <- for (env ^. sourceFiles) $ \file -> do
+          doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
+          putTextLn $ toText $ "Opened " <> file
+          pure (file, doc)
+        for fileList $ uncurry seekFile
   pure $ Hovercraft (env ^. projectId) hovercrafts
   where
     seekFile :: FilePath -> TextDocumentIdentifier -> Session Page
@@ -164,23 +166,24 @@ uncozip (InR xs) = map InR xs
 -- * LSP helpers
 
 -- | Generate a `BuildEnv` from the given file path.
-generateBuildEnv :: SiskuConfig -> FilePath -> IO BuildEnv
-generateBuildEnv SiskuConfig {_projectId, _lspSettings} filePath = usingReaderT _lspSettings $ do
+generateBuildEnv :: (MonadSiskuApp m, MonadIO m) => FilePath -> m BuildEnv
+generateBuildEnv filePath = do
   filePath <- liftIO $ makeAbsolute filePath
   _language <- detectLanguage filePath
   _rootPath <- searchRootPath _language filePath
   _sourceFiles <- fmap normalise <$> liftIO (glob (_rootPath <> "/**/*" <> takeExtension filePath))
   _sourceFiles <- filterExcluded _language _sourceFiles
   _command <- getCommand _language
+  _projectId <- view projectId <$> getConfig
   pure BuildEnv {..}
 
 -- | Detect what programming language the given file is written in.
-detectLanguage :: (MonadReader LspSettings m, MonadIO m) => FilePath -> m Text
+detectLanguage :: (MonadSiskuApp m, MonadIO m) => FilePath -> m Text
 detectLanguage filePath = do
   putTextLn $ toText $ "Detecting language for " <> filePath
   let ext = toText $ takeExtension filePath
   putTextLn $ "Looking for language for extension " <> ext
-  lspSettings <- Map.elems <$> asks unwrapLspSettings
+  lspSettings <- Map.elems <$> getLspSettingMap
   putTextLn $ "LspSettings: " <> show lspSettings
   let matches = mapMaybe ?? lspSettings $ \LspSetting {_language = language, _extensions = extensions} ->
         if ext `elem` extensions
@@ -193,9 +196,9 @@ detectLanguage filePath = do
     _ -> error $ "Multiple languages detected for " <> show filePath <> "\nTODO: Implement language detection when multiple languages are detected"
 
 -- | Get the root path of the given file.
-searchRootPath :: (MonadIO m, MonadReader LspSettings m) => Text -> FilePath -> m String
+searchRootPath :: (MonadIO m, MonadSiskuApp m) => Text -> FilePath -> m String
 searchRootPath language filePath = do
-  lspSetting <- fromMaybe (error $ "Language " <> show language <> " not found") . view (at language) <$> asks unwrapLspSettings
+  lspSetting <- fromMaybe (error $ "Language " <> show language <> " not found") . view (at language) <$> getLspSettingMap
   findRootPath (lspSetting ^. rootUriPatterns) [takeDirectory filePath]
   where
     findRootPath _ [] = error $ "Could not find root path for " <> show filePath
@@ -208,16 +211,17 @@ searchRootPath language filePath = do
           _ -> paths
 
 -- | Exclude files based on _lspSettingExcludePatterns.
-filterExcluded :: (MonadReader LspSettings m, MonadIO m) => Text -> [FilePath] -> m [FilePath]
+filterExcluded :: (MonadSiskuApp m, MonadIO m) => Text -> [FilePath] -> m [FilePath]
 filterExcluded language sourceFiles = do
-  lspSetting <- fromMaybe (error $ "Language " <> show language <> " not found") . view (at language) <$> asks unwrapLspSettings
+  lspSetting <- fromMaybe (error $ "Language " <> show language <> " not found") . view (at language) <$> getLspSettingMap
   excludedFiles <- liftIO $ traverse makeAbsolute . concat =<< traverse (glob . toString) (lspSetting ^. excludePatterns)
   pure $ filter (`notElem` excludedFiles) sourceFiles
 
 -- | Get the command to run the Language Server.
-getCommand :: MonadReader LspSettings m => Text -> m String
+getCommand :: MonadSiskuApp m => Text -> m String
 getCommand language = do
-  lspSetting <- view (to unwrapLspSettings . at language)
+  config <- getConfig
+  let lspSetting = view (lspSettingMap . to unwrapLspSettingMap . at language) config
   case lspSetting of
     Nothing -> error $ "Language " <> show language <> " not found"
     Just lspSetting -> pure $ toString $ lspSetting ^. command

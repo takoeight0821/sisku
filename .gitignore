@@ -74,3 +74,5 @@ cabal.project.local~
 
 data/
 tmp/
+
+.vim/

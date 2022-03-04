@@ -1,9 +1,8 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hovercraft where
+module Sisku.Hovercraft where
 
-import Config
 import Control.Lens ((^.))
 import Control.Lens.TH
 import Data.Aeson
@@ -11,6 +10,8 @@ import qualified Data.Aeson as Aeson
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens
 import Relude
+import Sisku.App
+import Sisku.Config
 import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import System.FilePath ((</>))
 
@@ -88,10 +89,11 @@ getDataHome :: IO FilePath
 getDataHome = getXdgDirectory XdgData "sisku/hovercraft"
 
 -- | Write hovercraft to file
-writeHovercraft :: SiskuConfig -> Maybe FilePath -> Hovercraft -> IO ()
-writeHovercraft config Nothing hc = do
-  dataHome <- getDataHome
-  createDirectoryIfMissing True dataHome
+writeHovercraft :: (MonadSiskuApp m, MonadIO m) => Maybe FilePath -> Hovercraft -> m ()
+writeHovercraft Nothing hc = do
+  dataHome <- liftIO getDataHome
+  liftIO $ createDirectoryIfMissing True dataHome
+  config <- getConfig
   let file = dataHome </> (toString (config ^. projectId) <> ".json")
-  Aeson.encodeFile file hc
-writeHovercraft _ (Just file) hc = Aeson.encodeFile file hc
+  liftIO $ Aeson.encodeFile file hc
+writeHovercraft (Just file) hc = liftIO $ Aeson.encodeFile file hc

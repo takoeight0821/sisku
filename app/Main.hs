@@ -2,22 +2,22 @@
 
 module Main (main) where
 
-import qualified Commands.GenElasticIndex
-import qualified Commands.IndexLsif
-import qualified Commands.IndexLsp
-import qualified Commands.Search
-import qualified Commands.Server
 import Options.Applicative
 import Relude (IO, Semigroup ((<>)), join, ($))
+import qualified Sisku.Commands.GenElasticIndex as GenElasticIndex
+import qualified Sisku.Commands.IndexLsif as IndexLsif
+import qualified Sisku.Commands.IndexLsp as IndexLsp
+import qualified Sisku.Commands.Search as Search
+import qualified Sisku.Commands.Server as Server
 
 opts :: Parser (IO ())
 opts =
   hsubparser $
-    Commands.IndexLsif.parser
-      <> Commands.IndexLsp.parser
-      <> Commands.GenElasticIndex.parser
-      <> Commands.Search.parser
-      <> Commands.Server.parser
+    IndexLsif.parser
+      <> IndexLsp.parser
+      <> GenElasticIndex.parser
+      <> Search.parser
+      <> Server.parser
 
 main :: IO ()
 main = join $ execParser (info (opts <**> helper) (fullDesc <> header "Sisku - Polyglot API Search Engine"))
