@@ -3,14 +3,13 @@
 
 module Sisku.Indexer.Common (CommonIndexer (..)) where
 
-import Control.Lens (At (at), over, view, (^.))
+import Control.Lens (At (at), over, view, (.~), (^.), _Just)
 import Control.Lens.TH
-import Data.Aeson (Value (Null))
 import qualified Data.Map as Map
 import Data.Traversable (for)
 import Language.LSP.Test (Session, closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
-import Language.LSP.Types (DocumentSymbol (..), HoverContents (HoverContents), List (List), SymbolInformation (..), TextDocumentIdentifier)
-import Language.LSP.Types.Lens (HasCharacter (character), HasCommand (command), HasContents (contents), HasRange (range), HasStart (start), HasValue (value))
+import Language.LSP.Types (DocumentSymbol (..), List (List), SymbolInformation (..), TextDocumentIdentifier)
+import Language.LSP.Types.Lens (HasCharacter (character), HasCommand (command), HasRange (range), HasSemanticTokens (semanticTokens), HasStart (start), HasWorkspace (workspace))
 import Relude
 import Sisku.App
 import Sisku.Config (HasExcludePatterns (excludePatterns), HasExtensions (extensions), HasProjectId (..), HasRootUriPatterns (rootUriPatterns), LspSetting)
@@ -54,7 +53,7 @@ buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
   let config = defaultConfig
   hovercrafts <-
     liftIO $
-      runSessionWithConfig config (env ^. command) fullCaps (env ^. rootPath) $ do
+      runSessionWithConfig config (env ^. command) (fullCaps & workspace . _Just . semanticTokens .~ Nothing) (env ^. rootPath) $ do
         fileList <- for (env ^. sourceFiles) $ \file -> do
           doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
           putTextLn $ toText $ "Opened " <> file
@@ -124,25 +123,29 @@ instance Craftable DocumentSymbol where
       (Nothing, Nothing) -> pure []
       (Nothing, Just (List cs)) -> craft env doc cs
       (Just hover, Nothing) -> do
-        pure
-          [ Entry
-              { _document = doc,
-                _projectId = env ^. projectId,
-                _hover = hover,
-                _definitions = map toDefinition $ Lsp.uncozip definitions,
-                _otherValue = Null,
-                _rootPath = env ^. rootPath
-              }
-          ]
+        let entry =
+              Entry
+                { _document = doc,
+                  _projectId = env ^. projectId,
+                  _hover = hover,
+                  _definitions = map toDefinition $ Lsp.uncozip definitions,
+                  _otherValues = [],
+                  _rootPath = env ^. rootPath
+                }
+        otherValues <- getOtherValues entry
+        pure [entry {_otherValues = otherValues}]
       (Just hover, Just (List cs)) -> do
-        ( Entry
-            { _document = doc,
-              _projectId = env ^. projectId,
-              _hover = hover,
-              _definitions = map toDefinition $ Lsp.uncozip definitions,
-              _otherValue = Null,
-              _rootPath = env ^. rootPath
-            }
+        let entry =
+              Entry
+                { _document = doc,
+                  _projectId = env ^. projectId,
+                  _hover = hover,
+                  _definitions = map toDefinition $ Lsp.uncozip definitions,
+                  _otherValues = [],
+                  _rootPath = env ^. rootPath
+                }
+        otherValues <- getOtherValues entry
+        ( entry {_otherValues = otherValues}
             :
           )
           <$> craft env doc cs
@@ -155,13 +158,15 @@ instance Craftable SymbolInformation where
     case mhover of
       Nothing -> pure []
       Just hover -> do
+        let entry =
+              Entry
+                { _document = doc,
+                  _projectId = env ^. projectId,
+                  _hover = hover,
+                  _definitions = map toDefinition $ Lsp.uncozip definitions,
+                  _otherValues = [],
+                  _rootPath = env ^. rootPath
+                }
+        otherValues <- getOtherValues entry
         pure
-          [ Entry
-              { _document = doc,
-                _projectId = env ^. projectId,
-                _hover = hover,
-                _definitions = map toDefinition $ Lsp.uncozip definitions,
-                _otherValue = Null,
-                _rootPath = env ^. rootPath
-              }
-          ]
+          [entry {_otherValues = otherValues}]

@@ -20,10 +20,10 @@ exampleLanguageClient =
           case mhover of
             Nothing -> pure Nothing
             Just hover -> do
-              let contentsText = case hover ^. contents of
-                    HoverContents c -> c ^. value
-                    _ -> "HoverContentsMS"
-              traceShowM $ toString contentsText
+              let contentsLines = case hover ^. contents of
+                    HoverContents c -> lines $ c ^. value
+                    _ -> ["HoverContentsMS"]
+              traceShowM contentsLines
               pure $ Just hover
       )
     |> onGetDocumentSymbols

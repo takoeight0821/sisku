@@ -1,6 +1,7 @@
 -- | The interface of Sisku indexer.
 module Sisku.Indexer where
 
+import Data.Aeson (Value)
 import Language.LSP.Test (Session)
 import Language.LSP.Types (DocumentSymbol, Hover, Location, LocationLink, Position, SymbolInformation, TextDocumentIdentifier, type (|?))
 import Relude
@@ -14,7 +15,8 @@ class Indexer m where
 data LanguageClient = LanguageClient
   { getDocumentSymbols :: TextDocumentIdentifier -> Session (Either [DocumentSymbol] [SymbolInformation]),
     getHover :: TextDocumentIdentifier -> Position -> Session (Maybe Hover),
-    getDefinitions :: TextDocumentIdentifier -> Position -> Session ([Location] |? [LocationLink])
+    getDefinitions :: TextDocumentIdentifier -> Position -> Session ([Location] |? [LocationLink]),
+    getOtherValues :: Entry -> Session [Value]
   }
 
 defaultLanguageClient :: LanguageClient
@@ -22,7 +24,8 @@ defaultLanguageClient =
   LanguageClient
     { getDocumentSymbols = Lsp.getDocumentSymbols,
       getHover = Lsp.getHover,
-      getDefinitions = Lsp.getDefinitions
+      getDefinitions = Lsp.getDefinitions,
+      getOtherValues = \Entry {_otherValues} -> pure _otherValues
     }
 
 onGetDocumentSymbols ::
@@ -61,3 +64,6 @@ onGetDefinitions ::
   LanguageClient ->
   LanguageClient
 onGetDefinitions f lc = lc {getDefinitions = f (getDefinitions lc)}
+
+onGetOtherValue :: ((Entry -> Session [Value]) -> Entry -> Session [Value]) -> LanguageClient -> LanguageClient
+onGetOtherValue f lc = lc {getOtherValues = f (getOtherValues lc)}
