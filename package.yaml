@@ -48,6 +48,7 @@ dependencies:
   - wai
   - warp
   - wai-extra
+  - cmark
 
 ghc-options:
   - -Wall

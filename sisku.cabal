@@ -88,6 +88,7 @@ library
     , aeson
     , async
     , base
+    , cmark
     , containers
     , exceptions
     , extra
@@ -169,6 +170,7 @@ executable sisku
     , aeson
     , async
     , base
+    , cmark
     , containers
     , exceptions
     , extra
@@ -251,6 +253,7 @@ executable test-server
     , aeson
     , async
     , base
+    , cmark
     , containers
     , exceptions
     , extra
@@ -335,6 +338,7 @@ test-suite sisku-test
     , aeson
     , async
     , base
+    , cmark
     , containers
     , exceptions
     , extra

@@ -8,8 +8,8 @@ import Control.Lens.TH
 import Data.Aeson (Value (Null))
 import Data.Traversable (for)
 import Language.LSP.Test (Session, closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
-import Language.LSP.Types (DocumentSymbol (..), List (List), SymbolInformation (..), TextDocumentIdentifier)
-import Language.LSP.Types.Lens (HasCharacter (character), HasRange (range), HasStart (start))
+import Language.LSP.Types (DocumentSymbol (..), HoverContents (HoverContents), List (List), SymbolInformation (..), TextDocumentIdentifier)
+import Language.LSP.Types.Lens (HasCharacter (character), HasContents (contents), HasRange (range), HasStart (start), HasValue (value))
 import Relude
 import Sisku.App
 import Sisku.Config (HasProjectId (..))
@@ -94,13 +94,17 @@ instance Craftable DocumentSymbol where
       (Nothing, Nothing) -> pure []
       (Nothing, Just (List cs)) -> craft env doc cs
       (Just hover, Nothing) -> do
+        let contentsText = case hover ^. contents of
+              HoverContents c -> c ^. value
+              _ -> "HoverContentsMS"
+        traceM $ toString contentsText
         pure
           [ Entry
               { _document = doc,
                 _projectId = env ^. projectId,
                 _hover = hover,
                 _definitions = map toDefinition $ Lsp.uncozip definitions,
-                _moniker = Null,
+                _otherValue = Null,
                 _rootPath = env ^. rootPath
               }
           ]
@@ -110,7 +114,7 @@ instance Craftable DocumentSymbol where
               _projectId = env ^. projectId,
               _hover = hover,
               _definitions = map toDefinition $ Lsp.uncozip definitions,
-              _moniker = Null,
+              _otherValue = Null,
               _rootPath = env ^. rootPath
             }
             :
@@ -131,7 +135,7 @@ instance Craftable SymbolInformation where
                 _projectId = env ^. projectId,
                 _hover = hover,
                 _definitions = map toDefinition $ Lsp.uncozip definitions,
-                _moniker = Null,
+                _otherValue = Null,
                 _rootPath = env ^. rootPath
               }
           ]
