@@ -41,7 +41,7 @@ packages:
     hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
 snapshots:
 - completed:
-    size: 609309
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/2/19.yaml
-    sha256: d661d997c564c9dfd7391721335e0f8f1355a196d7f60037ae7c762d5bf127ed
-  original: nightly-2022-02-19
+    size: 610848
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/3/9.yaml
+    sha256: d24718f2b7d7af47d1f10899f53331e2456beea22996628ff864a0a259f53fe3
+  original: nightly-2022-03-09
