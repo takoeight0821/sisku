@@ -49,7 +49,7 @@ instance Indexer CommonIndexer where
 -- * Build hovercrafts via LSP
 
 -- | Build a hovercraft using LSP.
-buildHovercraft :: MonadIO m => Env -> m Hovercraft
+buildHovercraft :: HasCallStack => MonadIO m => Env -> m Hovercraft
 buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
   let config = defaultConfig
   hovercrafts <-
@@ -62,7 +62,7 @@ buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
         for fileList $ uncurry seekFile
   pure $ Hovercraft (env ^. projectId) hovercrafts
   where
-    seekFile :: FilePath -> TextDocumentIdentifier -> Session Page
+    seekFile :: HasCallStack => FilePath -> TextDocumentIdentifier -> Session Page
     seekFile file doc = do
       putTextLn $ toText $ "Seeking file " <> file
       symbols <- getDocumentSymbols doc
@@ -124,10 +124,6 @@ instance Craftable DocumentSymbol where
       (Nothing, Nothing) -> pure []
       (Nothing, Just (List cs)) -> craft env doc cs
       (Just hover, Nothing) -> do
-        let contentsText = case hover ^. contents of
-              HoverContents c -> c ^. value
-              _ -> "HoverContentsMS"
-        traceM $ toString contentsText
         pure
           [ Entry
               { _document = doc,
