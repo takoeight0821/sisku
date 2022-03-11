@@ -89,18 +89,19 @@ library
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , lens
     , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
@@ -171,18 +172,19 @@ executable sisku
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , lens
     , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
@@ -254,19 +256,20 @@ executable test-server
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , lens
     , lens-aeson
     , lsp
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
@@ -339,19 +342,20 @@ test-suite sisku-test
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , hspec
     , lens
     , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
