@@ -45,7 +45,7 @@ data Entry = Entry
     _projectId :: Text,
     _hover :: Hover,
     _definitions :: [Definition],
-    _otherValue :: Value,
+    _otherValues :: [Value],
     _rootPath :: FilePath
   }
   deriving stock (Eq, Show, Generic)
