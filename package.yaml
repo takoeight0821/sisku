@@ -48,7 +48,10 @@ dependencies:
   - wai
   - warp
   - wai-extra
-  - cmark
+  - parsec
+  - full-text-search
+  - uuid
+  - tokenize
 
 ghc-options:
   - -Wall

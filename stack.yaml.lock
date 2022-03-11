@@ -39,6 +39,13 @@ packages:
       sha256: 02f05d52be3ffcf36c78876629cbab80b63420672685371aea4fd10e1c4aabb6
   original:
     hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
+- completed:
+    hackage: full-text-search-0.2.1.4@sha256:81f6df3327e5b604f99b15e78635e5d6ca996e504c21d268a6d751d7d131aa36,6032
+    pantry-tree:
+      size: 1743
+      sha256: 90b7cf8646ad1a7e3b6144ebeefa5af4d6bddec070eadb8e17489ae769612260
+  original:
+    hackage: full-text-search-0.2.1.4@sha256:81f6df3327e5b604f99b15e78635e5d6ca996e504c21d268a6d751d7d131aa36,6032
 snapshots:
 - completed:
     size: 610848

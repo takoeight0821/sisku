@@ -110,8 +110,10 @@ library
     , servant
     , servant-server
     , text
+    , tokenize
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp
@@ -194,8 +196,10 @@ executable sisku
     , servant-server
     , sisku
     , text
+    , tokenize
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp
@@ -279,8 +283,10 @@ executable test-server
     , servant-server
     , sisku
     , text
+    , tokenize
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp
@@ -365,8 +371,10 @@ test-suite sisku-test
     , servant-server
     , sisku
     , text
+    , tokenize
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp
