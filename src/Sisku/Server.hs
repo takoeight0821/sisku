@@ -23,6 +23,7 @@ import Relude
 import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp, type (:<|>) ((:<|>)), type (:>))
 import Servant.API (QueryParam)
 import Sisku.Hovercraft
+import qualified Sisku.Search as Search
 import System.FilePath (takeBaseName, (</>))
 import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirectory)
 
@@ -45,8 +46,15 @@ api = Proxy
 server :: FilePath -> Map Text Hovercraft -> HashMap UUID Entry -> SearchEngine Doc UUID DocField NoFeatures -> Server API
 server staticFilePath hovercrafts kvs engine =
   pure hovercrafts
-    :<|> search kvs engine
+    :<|> searchTokens (toEntries hovercrafts)
     :<|> serveDirectoryWebApp staticFilePath
+
+toEntries :: Map Text Hovercraft -> [Entry]
+toEntries hovercrafts = concatMap (\hovercraft -> concatMap (view entries) $ hovercraft ^. pages) $ Map.elems hovercrafts
+
+searchTokens :: Applicative f => [Entry] -> Maybe Text -> f (Search Entry)
+searchTokens _ Nothing = pure Search {query = "", results = []}
+searchTokens es (Just x) = pure Search {query = x, results = Search.search es x}
 
 search :: Applicative f => HashMap UUID Entry -> SearchEngine Doc UUID DocField NoFeatures -> Maybe Text -> f (Search Entry)
 search _ _ Nothing = pure Search {query = "", results = []}

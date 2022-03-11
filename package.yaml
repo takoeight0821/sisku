@@ -49,6 +49,7 @@ dependencies:
   - warp
   - wai-extra
   - parsec
+  - unicode-data
   - full-text-search
   - uuid
   - tokenize
