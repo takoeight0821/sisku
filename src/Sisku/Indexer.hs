@@ -16,6 +16,7 @@ data LanguageClient = LanguageClient
   { getDocumentSymbols :: TextDocumentIdentifier -> Session (Either [DocumentSymbol] [SymbolInformation]),
     getHover :: TextDocumentIdentifier -> Position -> Session (Maybe Hover),
     getDefinitions :: TextDocumentIdentifier -> Position -> Session ([Location] |? [LocationLink]),
+    getSignatureToken :: Entry -> Session [[Token]],
     getOtherValues :: Entry -> Session [Value]
   }
 
@@ -25,6 +26,7 @@ defaultLanguageClient =
     { getDocumentSymbols = Lsp.getDocumentSymbols,
       getHover = Lsp.getHover,
       getDefinitions = Lsp.getDefinitions,
+      getSignatureToken = \Entry {_signatureToken} -> pure _signatureToken,
       getOtherValues = \Entry {_otherValues} -> pure _otherValues
     }
 
@@ -64,6 +66,9 @@ onGetDefinitions ::
   LanguageClient ->
   LanguageClient
 onGetDefinitions f lc = lc {getDefinitions = f (getDefinitions lc)}
+
+onGetSignatureToken :: ((Entry -> Session [[Token]]) -> Entry -> Session [[Token]]) -> LanguageClient -> LanguageClient
+onGetSignatureToken f lc = lc {getSignatureToken = f (getSignatureToken lc)}
 
 onGetOtherValue :: ((Entry -> Session [Value]) -> Entry -> Session [Value]) -> LanguageClient -> LanguageClient
 onGetOtherValue f lc = lc {getOtherValues = f (getOtherValues lc)}

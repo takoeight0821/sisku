@@ -70,7 +70,6 @@ buildHovercraft env = do
     seekFile file doc = do
       putTextLn $ toText $ "Seeking file " <> file
       positions <- getAllPositions doc
-      traceM $ "positions = " <> show positions
       entries <- craft env doc positions
       let page = hashNubOn (view (hover . to Lsp.hoverContents)) entries
       closeDoc doc
@@ -81,9 +80,7 @@ getAllPositions doc = do
   case doc ^. uri . to uriToFilePath of
     Nothing -> error $ "invalid URI: " <> show (doc ^. uri)
     Just filePath -> do
-      traceM $ "filePath = " <> filePath
       fileContents <- lines <$> readFileText filePath
-      traceM $ "fileContents = " <> show fileContents
       pure $ iconcatMap (\i line -> [Position (fromIntegral i) (fromIntegral n) | n <- [0 .. Text.length line]]) fileContents
 
 -- | Generate all type of 'Env' for given 'LanguageClient's.
@@ -138,8 +135,10 @@ instance Craftable Position where
                   _projectId = env ^. projectId,
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
+                  _signatureToken = [],
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
+        signatureToken <- getSignatureToken entry
         otherValues <- getOtherValues entry
-        pure [entry {_otherValues = otherValues}]
+        pure [entry {_signatureToken = signatureToken, _otherValues = otherValues}]

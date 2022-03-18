@@ -6,7 +6,6 @@ import Sisku.App
 import Sisku.Config
 import Sisku.Hovercraft (writeHovercraft)
 import Sisku.Indexer
-import Sisku.Indexer.Common
 import Sisku.Indexer.Exhaustive
 import Sisku.Indexer.ExtractCodeBlock
 

@@ -1,5 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Sisku.Hovercraft where
 
@@ -39,12 +40,26 @@ instance ToJSON Definition where
 instance FromJSON Definition where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
+data Token
+  = Ident {_identifier :: Text}
+  | Symbol {_symbol :: Text}
+  | OtherChar {_char :: Char}
+  deriving stock (Eq, Ord, Show, Generic)
+
+instance ToJSON Token where
+  toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
+  toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
+
+instance FromJSON Token where
+  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
 -- | Hover document and definition information
 data Entry = Entry
   { _document :: TextDocumentIdentifier,
     _projectId :: Text,
     _hover :: Hover,
     _definitions :: [Definition],
+    _signatureToken :: [[Token]],
     _otherValues :: [Value],
     _rootPath :: FilePath
   }

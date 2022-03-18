@@ -48,7 +48,7 @@ instance Indexer CommonIndexer where
 -- * Build hovercrafts via LSP
 
 -- | Build a hovercraft using LSP.
-buildHovercraft :: HasCallStack => MonadIO m => Env -> m Hovercraft
+buildHovercraft :: MonadIO m => Env -> m Hovercraft
 buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
   let config = defaultConfig
   hovercrafts <-
@@ -61,7 +61,7 @@ buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
         for fileList $ uncurry seekFile
   pure $ Hovercraft (env ^. projectId) hovercrafts
   where
-    seekFile :: HasCallStack => FilePath -> TextDocumentIdentifier -> Session Page
+    seekFile :: FilePath -> TextDocumentIdentifier -> Session Page
     seekFile file doc = do
       putTextLn $ toText $ "Seeking file " <> file
       symbols <- getDocumentSymbols doc
@@ -129,11 +129,13 @@ instance Craftable DocumentSymbol where
                   _projectId = env ^. projectId,
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
+                  _signatureToken = [],
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
+        signatureToken <- getSignatureToken entry
         otherValues <- getOtherValues entry
-        pure [entry {_otherValues = otherValues}]
+        pure [entry {_signatureToken = signatureToken, _otherValues = otherValues}]
       (Just hover, Just (List cs)) -> do
         let entry =
               Entry
@@ -141,11 +143,13 @@ instance Craftable DocumentSymbol where
                   _projectId = env ^. projectId,
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
+                  _signatureToken = [],
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
+        signatureToken <- getSignatureToken entry
         otherValues <- getOtherValues entry
-        ( entry {_otherValues = otherValues}
+        ( entry {_signatureToken = signatureToken, _otherValues = otherValues}
             :
           )
           <$> craft env doc cs
@@ -164,9 +168,11 @@ instance Craftable SymbolInformation where
                   _projectId = env ^. projectId,
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
+                  _signatureToken = [],
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
+        signatureToken <- getSignatureToken entry
         otherValues <- getOtherValues entry
         pure
-          [entry {_otherValues = otherValues}]
+          [entry {_signatureToken = signatureToken, _otherValues = otherValues}]

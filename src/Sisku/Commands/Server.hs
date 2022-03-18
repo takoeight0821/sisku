@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 import Network.Wai.Handler.Warp (run)
 import Options.Applicative
 import Relude
-import Sisku.Server (addDocuments, app, getAllHovercrafts, searchEngine)
+import Sisku.Server (app, getAllHovercrafts)
 import UnliftIO.Directory (XdgDirectory (XdgData), doesDirectoryExist, getXdgDirectory)
 
 newtype Options = Options
@@ -21,14 +21,7 @@ cmd Options {..} = do
         <> "Please install sisku-elm.\n"
   hovercrafts <- getAllHovercrafts
   putTextLn $ "Listening on port " <> show port <> "..."
-  (kvs, engine) <- go searchEngine (Map.elems hovercrafts)
-  run port (app staticFilePath hovercrafts kvs engine)
-  where
-    go engine [] = pure (mempty, engine)
-    go engine (hc : rest) = do
-      (kvs, engine') <- addDocuments hc engine
-      (kvs', engine'') <- go engine' rest
-      pure (kvs <> kvs', engine'')
+  run port (app staticFilePath hovercrafts)
 
 opts :: Parser Options
 opts =
