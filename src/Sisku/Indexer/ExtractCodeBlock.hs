@@ -1,7 +1,6 @@
 module Sisku.Indexer.ExtractCodeBlock where
 
 import Control.Lens ((^.))
-import Data.Aeson
 import qualified Data.Text as Text
 import Language.LSP.Types
 import Language.LSP.Types.Lens (HasContents (contents), HasValue (value))
@@ -13,40 +12,27 @@ import Text.Parsec.Text (Parser)
 import Unicode.Char (isPunctuation, isSymbol, isXIDContinue, isXIDStart)
 
 extractCodeBlock :: LanguageClient -> LanguageClient
-extractCodeBlock = onGetOtherValue $ \super Entry {..} -> do
+extractCodeBlock = onDecorate $ \super Entry {..} -> do
   let contentsLines = case _hover ^. contents of
         HoverContents c -> lines $ c ^. value
         _ -> ["HoverContentsMS"]
   case parseAndExtract contentsLines of
-    sigText
-      | sigText == "" -> super Entry {..}
-      | otherwise -> do
-        traceM $ toString sigText
-        traceShowM $ tokenize sigText
-        _otherValues <- pure $ Object (fromList [("signature", toJSON (tokenize sigText))]) : _otherValues
-        super Entry {..}
+    [] -> super Entry {..}
+    sigTexts -> do
+      let _signatureToken = map tokenize sigTexts
+      super Entry {..}
 
-parseAndExtract :: [Text] -> Text
-parseAndExtract [] = ""
+parseAndExtract :: [Text] -> [Text]
+parseAndExtract [] = []
 parseAndExtract (line : rest)
-  | "```" `Text.isPrefixOf` line = extract rest
+  | "```" `Text.isPrefixOf` line = extract "" rest
   | otherwise = parseAndExtract rest
 
-extract :: [Text] -> Text
-extract [] = error "invalid markdown"
-extract (line : rest)
-  | "```" `Text.isPrefixOf` line = parseAndExtract rest
-  | otherwise = line <> "\n" <> extract rest
-
-data Token
-  = Ident {_identifier :: Text}
-  | Symbol {_symbol :: Text}
-  | OtherChar {_char :: Char}
-  deriving stock (Eq, Ord, Show, Generic)
-
-instance ToJSON Token
-
-instance FromJSON Token
+extract :: Text -> [Text] -> [Text]
+extract acc [] = [acc]
+extract acc (line : rest)
+  | "```" `Text.isPrefixOf` line = acc : parseAndExtract rest
+  | otherwise = extract (acc <> line <> "\n") rest
 
 tokenize :: Text -> [Token]
 tokenize input = case parse

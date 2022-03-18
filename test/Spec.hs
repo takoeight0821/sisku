@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Data.Aeson (Value (Array, Object, String))
 import qualified Data.Aeson as Aeson
 import Language.LSP.Types
 import Relude
@@ -49,11 +48,47 @@ helloTestHovercraft rootPath uri =
                       _projectId = "com.github.takoeight0821.sisku.test",
                       _hover =
                         Hover
-                          { _contents = HoverContents $ MarkupContent {_kind = MkMarkdown, _value = "\n```test\nHello world\n```\n"},
-                            _range = Just $ mkRange 0 1 0 1
+                          { _contents =
+                              HoverContents
+                                MarkupContent
+                                  { _kind = MkMarkdown,
+                                    _value = "\n```test\nHello world\n```\n"
+                                  },
+                            _range =
+                              Just
+                                Range
+                                  { _start =
+                                      Position
+                                        { _line = 0,
+                                          _character = 0
+                                        },
+                                    _end =
+                                      Position
+                                        { _line = 0,
+                                          _character = 0
+                                        }
+                                  }
                           },
-                      _definitions = [Definition {_uri = uri, _range = mkRange 0 0 0 0}],
-                      _otherValues = [Object (fromList [("signature", Array [Object (fromList [("_identifier", String "Hello"), ("tag", String "Ident")]), Object (fromList [("_identifier", String "world"), ("tag", String "Ident")])])])],
+                      _definitions =
+                        [ Definition
+                            { _uri = uri,
+                              _range =
+                                Range
+                                  { _start =
+                                      Position
+                                        { _line = 0,
+                                          _character = 0
+                                        },
+                                    _end =
+                                      Position
+                                        { _line = 0,
+                                          _character = 0
+                                        }
+                                  }
+                            }
+                        ],
+                      _signatureToken = [[Ident {_identifier = "Hello"}, Ident {_identifier = "world"}]],
+                      _otherValues = [],
                       _rootPath = rootPath
                     }
                 ]

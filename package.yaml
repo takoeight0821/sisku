@@ -53,6 +53,7 @@ dependencies:
   - full-text-search
   - uuid
   - tokenize
+  - witherable
 
 ghc-options:
   - -Wall

@@ -1,15 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Sisku.Indexer.Common (CommonIndexer (..)) where
+module Sisku.Indexer.Exhaustive (ExhaustiveIndexer (..)) where
 
-import Control.Lens (At (at), over, view, (.~), (^.), _Just)
+import Control.Lens (At (at), iconcatMap, to, view, (.~), (^.), _Just)
 import Control.Lens.TH
+import Data.List.Extra (groupOn)
 import qualified Data.Map as Map
+import qualified Data.Text as Text
 import Data.Traversable (for)
 import Language.LSP.Test (Session, closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
-import Language.LSP.Types (DocumentSymbol (..), List (List), SymbolInformation (..), TextDocumentIdentifier)
-import Language.LSP.Types.Lens (HasCharacter (character), HasCommand (command), HasRange (range), HasSemanticTokens (semanticTokens), HasStart (start), HasWorkspace (workspace))
+import Language.LSP.Types (Position (Position), TextDocumentIdentifier, uriToFilePath)
+import Language.LSP.Types.Lens (HasCommand (command), HasHover (hover), HasSemanticTokens (semanticTokens), HasUri (uri), HasWorkspace (workspace))
 import Relude
 import Sisku.App
 import Sisku.Config (HasExcludePatterns (excludePatterns), HasExtensions (extensions), HasProjectId (..), HasRootUriPatterns (rootUriPatterns), LspSetting)
@@ -19,6 +21,7 @@ import qualified Sisku.Lsp as Lsp
 import System.Directory.Extra (doesFileExist, getCurrentDirectory, makeAbsolute)
 import System.FilePath (isValid, joinPath, makeRelative, normalise, splitPath, (</>))
 import System.FilePath.Glob (glob)
+import Witherable (hashNubOn)
 
 data Env = Env
   { _command :: FilePath,
@@ -32,10 +35,10 @@ data Env = Env
 
 makeFieldsNoPrefix ''Env
 
-newtype CommonIndexer a = CommonIndexer {unCommonIndexer :: SiskuApp a}
+newtype ExhaustiveIndexer a = ExhaustiveIndexer {unExhaustiveIndexer :: SiskuApp a}
 
-instance Indexer CommonIndexer where
-  build lc = CommonIndexer do
+instance Indexer ExhaustiveIndexer where
+  build lc = ExhaustiveIndexer do
     languages <- Map.keys <$> getLspSettingMap
     envs <- generateAllEnvs (map (,lc) languages)
     hs <- traverse (\(_, env) -> buildHovercraft env) envs
@@ -49,7 +52,7 @@ instance Indexer CommonIndexer where
 
 -- | Build a hovercraft using LSP.
 buildHovercraft :: MonadIO m => Env -> m Hovercraft
-buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
+buildHovercraft env = do
   let config = defaultConfig
   hovercrafts <-
     liftIO $
@@ -59,20 +62,26 @@ buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
           putTextLn $ toText $ "Opened " <> file
           pure (file, doc)
         for fileList $ uncurry seekFile
-  pure $ Hovercraft (env ^. projectId) hovercrafts
+  let hovercrafts' = hashNubOn (view (hover . to Lsp.hoverContents)) $ concat hovercrafts
+  let hovercrafts'' = groupOn (view document) hovercrafts'
+  pure $ Hovercraft (env ^. projectId) (map Page hovercrafts'')
   where
-    seekFile :: FilePath -> TextDocumentIdentifier -> Session Page
+    seekFile :: FilePath -> TextDocumentIdentifier -> Session [Entry]
     seekFile file doc = do
       putTextLn $ toText $ "Seeking file " <> file
-      symbols <- getDocumentSymbols doc
-      putTextLn $ "Got symbols for " <> show file
-      page <-
-        Page
-          <$> case symbols of
-            Right symInfos -> craft env doc symInfos
-            Left docSymbols -> craft env doc docSymbols
+      positions <- getAllPositions doc
+      entries <- craft env doc positions
+      let page = hashNubOn (view (hover . to Lsp.hoverContents)) entries
       closeDoc doc
       pure page
+
+getAllPositions :: MonadIO m => TextDocumentIdentifier -> m [Position]
+getAllPositions doc = do
+  case doc ^. uri . to uriToFilePath of
+    Nothing -> error $ "invalid URI: " <> show (doc ^. uri)
+    Just filePath -> do
+      fileContents <- lines <$> readFileText filePath
+      pure $ iconcatMap (\i line -> [Position (fromIntegral i) (fromIntegral n) | n <- [0 .. Text.length line]]) fileContents
 
 -- | Generate all type of 'Env' for given 'LanguageClient's.
 generateAllEnvs :: (MonadSiskuApp m, MonadIO m) => [(Text, LanguageClient)] -> m [(Text, Env)]
@@ -113,45 +122,8 @@ class Craftable a where
 instance Craftable a => Craftable [a] where
   craft env doc xs = concat <$> traverse (craft env doc) xs
 
-instance Craftable DocumentSymbol where
-  craft env@Env {_languageClient = LanguageClient {..}} doc DocumentSymbol {..} = do
-    let pos = over character (+ 1) $ _selectionRange ^. start
-    mhover <- getHover doc pos
-    definitions <- getDefinitions doc pos
-
-    case (mhover, _children) of
-      (Nothing, Nothing) -> pure []
-      (Nothing, Just (List cs)) -> craft env doc cs
-      (Just hover, Nothing) -> do
-        let entry =
-              Entry
-                { _document = doc,
-                  _projectId = env ^. projectId,
-                  _hover = hover,
-                  _definitions = map toDefinition $ Lsp.uncozip definitions,
-                  _signatureToken = [],
-                  _otherValues = [],
-                  _rootPath = env ^. rootPath
-                }
-        entry <- decorate entry
-        pure [entry]
-      (Just hover, Just (List cs)) -> do
-        let entry =
-              Entry
-                { _document = doc,
-                  _projectId = env ^. projectId,
-                  _hover = hover,
-                  _definitions = map toDefinition $ Lsp.uncozip definitions,
-                  _signatureToken = [],
-                  _otherValues = [],
-                  _rootPath = env ^. rootPath
-                }
-        entry <- decorate entry
-        (entry :) <$> craft env doc cs
-
-instance Craftable SymbolInformation where
-  craft env@Env {_languageClient = LanguageClient {..}} doc SymbolInformation {..} = do
-    let pos = _location ^. range . start
+instance Craftable Position where
+  craft env@Env {_languageClient = LanguageClient {..}} doc pos = do
     mhover <- getHover doc pos
     definitions <- getDefinitions doc pos
     case mhover of
