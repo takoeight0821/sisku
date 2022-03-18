@@ -5,6 +5,7 @@ module Sisku.Indexer.Exhaustive (ExhaustiveIndexer (..)) where
 
 import Control.Lens (At (at), iconcatMap, to, view, (.~), (^.), _Just)
 import Control.Lens.TH
+import Data.List.Extra (groupOn)
 import qualified Data.Map as Map
 import qualified Data.Text as Text
 import Data.Traversable (for)
@@ -61,15 +62,17 @@ buildHovercraft env = do
           putTextLn $ toText $ "Opened " <> file
           pure (file, doc)
         for fileList $ uncurry seekFile
-  pure $ Hovercraft (env ^. projectId) hovercrafts
+  let hovercrafts' = hashNubOn (view (hover . to Lsp.hoverContents)) $ concat hovercrafts
+  let hovercrafts'' = groupOn (view document) hovercrafts'
+  pure $ Hovercraft (env ^. projectId) (map Page hovercrafts'')
   where
-    seekFile :: FilePath -> TextDocumentIdentifier -> Session Page
+    seekFile :: FilePath -> TextDocumentIdentifier -> Session [Entry]
     seekFile file doc = do
       putTextLn $ toText $ "Seeking file " <> file
       positions <- getAllPositions doc
       traceM $ "positions = " <> show positions
       entries <- craft env doc positions
-      let page = Page $ hashNubOn (view (hover . to Lsp.hoverContents)) entries
+      let page = hashNubOn (view (hover . to Lsp.hoverContents)) entries
       closeDoc doc
       pure page
 
