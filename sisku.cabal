@@ -35,6 +35,7 @@ library
       Sisku.Indexer.ExtractCodeBlock
       Sisku.Indexer.MiddlewareExample
       Sisku.Lsp
+      Sisku.Search
       Sisku.Server
   other-modules:
       Paths_sisku
@@ -89,18 +90,19 @@ library
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , lens
     , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
@@ -109,8 +111,11 @@ library
     , servant
     , servant-server
     , text
+    , tokenize
+    , unicode-data
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp
@@ -171,18 +176,19 @@ executable sisku
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , lens
     , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
@@ -192,8 +198,11 @@ executable sisku
     , servant-server
     , sisku
     , text
+    , tokenize
+    , unicode-data
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp
@@ -254,19 +263,20 @@ executable test-server
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , lens
     , lens-aeson
     , lsp
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
@@ -276,8 +286,11 @@ executable test-server
     , servant-server
     , sisku
     , text
+    , tokenize
+    , unicode-data
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp
@@ -339,19 +352,20 @@ test-suite sisku-test
     , aeson
     , async
     , base
-    , cmark
     , containers
     , exceptions
     , extra
     , fgl
     , filepath
     , flow
+    , full-text-search
     , hspec
     , lens
     , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
+    , parsec
     , pretty-simple
     , process
     , relude >=1.0
@@ -361,8 +375,11 @@ test-suite sisku-test
     , servant-server
     , sisku
     , text
+    , tokenize
+    , unicode-data
     , unliftio
     , unordered-containers
+    , uuid
     , wai
     , wai-extra
     , warp

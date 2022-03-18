@@ -1,6 +1,7 @@
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Data.Aeson (Value (Object, String))
+import Data.Aeson (Value (Array, Object, String))
 import qualified Data.Aeson as Aeson
 import Language.LSP.Types
 import Relude
@@ -52,7 +53,7 @@ helloTestHovercraft rootPath uri =
                             _range = Just $ mkRange 0 1 0 1
                           },
                       _definitions = [Definition {_uri = uri, _range = mkRange 0 0 0 0}],
-                      _otherValues = [Object (fromList [("signature", String "Hello world\n")])],
+                      _otherValues = [Object (fromList [("signature", Array [Object (fromList [("_identifier", String "Hello"), ("tag", String "Ident")]), Object (fromList [("_identifier", String "world"), ("tag", String "Ident")])])])],
                       _rootPath = rootPath
                     }
                 ]

@@ -1,9 +1,10 @@
 module Sisku.Commands.Server (parser) where
 
+import qualified Data.Map as Map
 import Network.Wai.Handler.Warp (run)
 import Options.Applicative
 import Relude
-import Sisku.Server (app)
+import Sisku.Server (addDocuments, app, getAllHovercrafts, searchEngine)
 import UnliftIO.Directory (XdgDirectory (XdgData), doesDirectoryExist, getXdgDirectory)
 
 newtype Options = Options
@@ -18,8 +19,16 @@ cmd Options {..} = do
     error $
       "Directory " <> show staticFilePath <> " does not exist.\n"
         <> "Please install sisku-elm.\n"
+  hovercrafts <- getAllHovercrafts
   putTextLn $ "Listening on port " <> show port <> "..."
-  run port (app staticFilePath)
+  (kvs, engine) <- go searchEngine (Map.elems hovercrafts)
+  run port (app staticFilePath hovercrafts kvs engine)
+  where
+    go engine [] = pure (mempty, engine)
+    go engine (hc : rest) = do
+      (kvs, engine') <- addDocuments hc engine
+      (kvs', engine'') <- go engine' rest
+      pure (kvs <> kvs', engine'')
 
 opts :: Parser Options
 opts =
