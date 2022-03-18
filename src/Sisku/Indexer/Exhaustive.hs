@@ -139,6 +139,5 @@ instance Craftable Position where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        signatureToken <- getSignatureToken entry
-        otherValues <- getOtherValues entry
-        pure [entry {_signatureToken = signatureToken, _otherValues = otherValues}]
+        entry <- decorate entry
+        pure [entry]

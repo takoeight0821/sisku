@@ -1,6 +1,5 @@
 module Sisku.Commands.Server (parser) where
 
-import qualified Data.Map as Map
 import Network.Wai.Handler.Warp (run)
 import Options.Applicative
 import Relude

@@ -133,9 +133,8 @@ instance Craftable DocumentSymbol where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        signatureToken <- getSignatureToken entry
-        otherValues <- getOtherValues entry
-        pure [entry {_signatureToken = signatureToken, _otherValues = otherValues}]
+        entry <- decorate entry
+        pure [entry]
       (Just hover, Just (List cs)) -> do
         let entry =
               Entry
@@ -147,12 +146,8 @@ instance Craftable DocumentSymbol where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        signatureToken <- getSignatureToken entry
-        otherValues <- getOtherValues entry
-        ( entry {_signatureToken = signatureToken, _otherValues = otherValues}
-            :
-          )
-          <$> craft env doc cs
+        entry <- decorate entry
+        (entry :) <$> craft env doc cs
 
 instance Craftable SymbolInformation where
   craft env@Env {_languageClient = LanguageClient {..}} doc SymbolInformation {..} = do
@@ -172,7 +167,5 @@ instance Craftable SymbolInformation where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        signatureToken <- getSignatureToken entry
-        otherValues <- getOtherValues entry
-        pure
-          [entry {_signatureToken = signatureToken, _otherValues = otherValues}]
+        entry <- decorate entry
+        pure [entry]

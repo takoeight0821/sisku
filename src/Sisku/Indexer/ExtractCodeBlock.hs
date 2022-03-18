@@ -12,7 +12,7 @@ import Text.Parsec.Text (Parser)
 import Unicode.Char (isPunctuation, isSymbol, isXIDContinue, isXIDStart)
 
 extractCodeBlock :: LanguageClient -> LanguageClient
-extractCodeBlock = onGetSignatureToken $ \super Entry {..} -> do
+extractCodeBlock = onDecorate $ \super Entry {..} -> do
   let contentsLines = case _hover ^. contents of
         HoverContents c -> lines $ c ^. value
         _ -> ["HoverContentsMS"]
