@@ -11,7 +11,7 @@ import Sisku.Indexer.ExtractCodeBlock (Token, tokenize)
 
 search :: [Entry] -> Text -> [Entry]
 search entries query =
-  take 100 $ sortOn ((levenshtein ?? tokenize query) . signature) entries
+  take 100 $ sortOn ((minimum . (maxBound :) . map (levenshtein ?? tokenize query)) . signatures) entries
 
 levenshtein :: Eq a => [a] -> [a] -> Int
 levenshtein s1 s2 = Unsafe.last $ foldl transform [0 .. length s1] s2
@@ -21,14 +21,14 @@ levenshtein s1 s2 = Unsafe.last $ foldl transform [0 .. length s1] s2
         calc z (c1, x, y) = minimum [y + 1, z + 1, x + fromEnum (c1 /= c)]
     transform [] _ = error "unreachable"
 
-signature :: Entry -> [Token]
-signature e = go $ e ^. otherValues
+signatures :: Entry -> [[Token]]
+signatures e = go $ e ^. otherValues
   where
     go [] = []
     go (x : rest) =
       fromMaybe
         []
-        ( case fromJSON $ Unsafe.fromJust $ x ^? key "signature" of
+        ( case fromJSON $ Unsafe.fromJust $ x ^? key "signatures" of
             Error err -> error $ toText err
             Success v -> v
         )

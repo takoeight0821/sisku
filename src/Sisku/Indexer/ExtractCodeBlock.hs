@@ -18,25 +18,24 @@ extractCodeBlock = onGetOtherValue $ \super Entry {..} -> do
         HoverContents c -> lines $ c ^. value
         _ -> ["HoverContentsMS"]
   case parseAndExtract contentsLines of
-    sigText
-      | sigText == "" -> super Entry {..}
-      | otherwise -> do
-        traceM $ toString sigText
-        traceShowM $ tokenize sigText
-        _otherValues <- pure $ Object (fromList [("signature", toJSON (tokenize sigText))]) : _otherValues
-        super Entry {..}
+    [] -> super Entry {..}
+    sigTexts -> do
+      traceM $ show sigTexts
+      traceShowM $ map tokenize sigTexts
+      _otherValues <- pure $ Object (fromList [("signatures", toJSON (map tokenize sigTexts))]) : _otherValues
+      super Entry {..}
 
-parseAndExtract :: [Text] -> Text
-parseAndExtract [] = ""
+parseAndExtract :: [Text] -> [Text]
+parseAndExtract [] = []
 parseAndExtract (line : rest)
-  | "```" `Text.isPrefixOf` line = extract rest
+  | "```" `Text.isPrefixOf` line = extract "" rest
   | otherwise = parseAndExtract rest
 
-extract :: [Text] -> Text
-extract [] = error "invalid markdown"
-extract (line : rest)
-  | "```" `Text.isPrefixOf` line = parseAndExtract rest
-  | otherwise = line <> "\n" <> extract rest
+extract :: Text -> [Text] -> [Text]
+extract acc [] = [acc]
+extract acc (line : rest)
+  | "```" `Text.isPrefixOf` line = acc : parseAndExtract rest
+  | otherwise = extract (acc <> line <> "\n") rest
 
 data Token
   = Ident {_identifier :: Text}
