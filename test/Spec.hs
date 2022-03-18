@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Data.Aeson (Value (Array, Object, String))
 import qualified Data.Aeson as Aeson
 import Language.LSP.Types
 import Relude
@@ -88,7 +87,8 @@ helloTestHovercraft rootPath uri =
                                   }
                             }
                         ],
-                      _otherValues = [Object (fromList [("signature", Array [Object (fromList [("_identifier", String "Hello"), ("tag", String "Ident")]), Object (fromList [("_identifier", String "world"), ("tag", String "Ident")])])])],
+                      _signatureToken = [[Ident {_identifier = "Hello"}, Ident {_identifier = "world"}]],
+                      _otherValues = [],
                       _rootPath = rootPath
                     }
                 ]
