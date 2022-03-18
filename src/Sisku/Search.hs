@@ -11,7 +11,7 @@ import Sisku.Indexer.ExtractCodeBlock (Token, tokenize)
 
 search :: [Entry] -> Text -> [Entry]
 search entries query =
-  sortOn ((levenshtein ?? tokenize query) . signature) entries
+  take 100 $ sortOn ((levenshtein ?? tokenize query) . signature) entries
 
 levenshtein :: Eq a => [a] -> [a] -> Int
 levenshtein s1 s2 = Unsafe.last $ foldl transform [0 .. length s1] s2

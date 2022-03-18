@@ -1,9 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-deprecations #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module Sisku.Lsp (getDocumentSymbols, getHover, getDefinitions, uncozip, detectLanguage, searchRootPath, filterExcluded, getCommand) where
+module Sisku.Lsp (getDocumentSymbols, getHover, getDefinitions, uncozip, detectLanguage, searchRootPath, filterExcluded, getCommand, hoverContents) where
 
 import Control.Lens hiding (List, children, (.=), (??))
+import Data.List.Extra (mconcatMap)
 import qualified Data.Map as Map
 import Language.LSP.Test hiding (getDefinitions, getDocumentSymbols, getHover)
 import Language.LSP.Types hiding (Message)
@@ -106,3 +108,10 @@ getCommand language = do
   case lspSetting of
     Nothing -> error $ "Language " <> show language <> " not found"
     Just lspSetting -> pure $ toString $ lspSetting ^. command
+
+hoverContents :: Hover -> Text
+hoverContents Hover {_contents = HoverContents markupContent} = markupContent ^. value
+hoverContents Hover {_contents = HoverContentsMS ls} =
+  mconcatMap ?? toList ls $ \case
+    PlainString t -> t
+    CodeString c -> c ^. value

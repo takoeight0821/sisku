@@ -7,6 +7,7 @@ import Sisku.Config
 import Sisku.Hovercraft (writeHovercraft)
 import Sisku.Indexer
 import Sisku.Indexer.Common
+import Sisku.Indexer.Exhaustive
 import Sisku.Indexer.ExtractCodeBlock
 
 data Options = Options
@@ -18,7 +19,7 @@ cmd :: Options -> IO ()
 cmd Options {..} = do
   config <- loadConfig configFilePath
   runSiskuApp config do
-    let CommonIndexer indexer = build (defaultLanguageClient & extractCodeBlock)
+    let ExhaustiveIndexer indexer = build (defaultLanguageClient & extractCodeBlock)
     hovercraft <- indexer
     writeHovercraft outputFilePath hovercraft
 
