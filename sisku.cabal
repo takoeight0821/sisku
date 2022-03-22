@@ -304,7 +304,6 @@ test-suite sisku-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      TestHLSHovercraft
       Paths_sisku
   hs-source-dirs:
       test
