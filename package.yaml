@@ -47,6 +47,7 @@ dependencies:
   - servant-server
   - wai
   - warp
+  - wai-logger
   - wai-extra
   - parsec
   - unicode-data

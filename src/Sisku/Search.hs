@@ -7,10 +7,12 @@ import qualified Relude.Unsafe as Unsafe
 import Sisku.Hovercraft hiding (entries)
 import Sisku.Indexer.ExtractCodeBlock (tokenize)
 
-search :: [Entry] -> Text -> [Entry]
-search entries query =
-  take 100 $ sortOn ((minimum . (maxBound :) . map (levenshtein ?? tokenize query)) . view signatureToken) entries
+search :: Text -> [Entry] -> Text -> [Entry]
+search placeholderText entries query =
+  take 100 $ sortOn ((minimum . (maxBound :) . map (levenshtein ?? tokenize placeholderText query)) . view signatureToken) entries
 
+-- from https://rosettacode.org/wiki/Levenshtein_distance#Haskell
+-- TODO: make more readable
 levenshtein :: Eq a => [a] -> [a] -> Int
 levenshtein s1 s2 = Unsafe.last $ foldl transform [0 .. length s1] s2
   where

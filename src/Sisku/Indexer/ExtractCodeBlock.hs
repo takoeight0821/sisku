@@ -7,7 +7,7 @@ import Language.LSP.Types.Lens (HasContents (contents), HasValue (value))
 import Relude
 import Sisku.Hovercraft
 import Sisku.Indexer
-import Text.Parsec (anyChar, char, eof, manyTill, notFollowedBy, parse, satisfy, spaces, try)
+import Text.Parsec (anyChar, eof, manyTill, notFollowedBy, parse, satisfy, spaces, string, try)
 import Text.Parsec.Text (Parser)
 import Unicode.Char (isPunctuation, isSymbol, isXIDContinue, isXIDStart)
 
@@ -19,7 +19,7 @@ extractCodeBlock = onDecorate $ \super Entry {..} -> do
   case parseAndExtract contentsLines of
     [] -> super Entry {..}
     sigTexts -> do
-      let _signatureToken = map tokenize sigTexts
+      let _signatureToken = map (tokenize "_") sigTexts
       super Entry {..}
 
 parseAndExtract :: [Text] -> [Text]
@@ -34,13 +34,13 @@ extract acc (line : rest)
   | "```" `Text.isPrefixOf` line = acc : parseAndExtract rest
   | otherwise = extract (acc <> line <> "\n") rest
 
-tokenize :: Text -> [Token]
-tokenize input = case parse
+tokenize :: Text -> Text -> [Token]
+tokenize placeholder input = case parse
   ( do
       spaces
       manyTill
         ( do
-            x <- try pPlaceholder <|> pIdent <|> pSymbol <|> pOtherChar
+            x <- try (pPlaceholder placeholder) <|> pIdent <|> pSymbol <|> pOtherChar
             spaces
             pure x
         )
@@ -51,11 +51,11 @@ tokenize input = case parse
   Left err -> error $ show err
   Right x -> x
 
-pPlaceholder :: Parser Token
-pPlaceholder = do
-  _ <- char '_'
+pPlaceholder :: Text -> Parser Token
+pPlaceholder placeholderText = do
+  _ <- string (toString placeholderText)
   notFollowedBy (pIdent <|> pSymbol)
-  pure $ Placeholder "_"
+  pure $ Placeholder placeholderText
 
 pIdent :: Parser Token
 pIdent = do
