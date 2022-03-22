@@ -1,7 +1,6 @@
 -- | The interface of Sisku indexer.
 module Sisku.Indexer where
 
-import Data.Aeson (Value)
 import Language.LSP.Test (Session)
 import Language.LSP.Types (DocumentSymbol, Hover, Location, LocationLink, Position, SymbolInformation, TextDocumentIdentifier, type (|?))
 import Relude

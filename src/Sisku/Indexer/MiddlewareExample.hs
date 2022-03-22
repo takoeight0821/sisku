@@ -23,7 +23,7 @@ exampleLanguageClient =
               let contentsLines = case hover ^. contents of
                     HoverContents c -> lines $ c ^. value
                     _ -> ["HoverContentsMS"]
-              traceShowM contentsLines
+              liftIO $ print contentsLines
               pure $ Just hover
       )
     |> onGetDocumentSymbols
