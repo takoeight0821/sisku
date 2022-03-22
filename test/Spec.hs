@@ -27,7 +27,7 @@ main = do
       it "haskell-language-server" $ isJust (hovercraft :: Maybe Hovercraft) `shouldBe` True
       hovercraft <- pure $ fromJust hovercraft
       entries <- pure $ concatMap (view entries) $ hovercraft ^. pages
-      it "search" $ (search entries "IO" /= []) `shouldBe` True
+      it "search" $ (search "_" entries "IO" /= []) `shouldBe` True
 
 -- | Initialize test-haskell-language-server
 initializeTestHLS :: IO FilePath

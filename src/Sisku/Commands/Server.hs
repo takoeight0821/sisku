@@ -1,6 +1,7 @@
 module Sisku.Commands.Server (parser) where
 
-import Network.Wai.Handler.Warp (run)
+import Network.Wai.Handler.Warp (defaultSettings, runSettings, setLogger, setPort)
+import Network.Wai.Logger (withStdoutLogger)
 import Options.Applicative
 import Relude
 import Sisku.Server (app, getAllHovercrafts)
@@ -20,7 +21,9 @@ cmd Options {..} = do
         <> "Please install sisku-elm.\n"
   hovercrafts <- getAllHovercrafts
   putTextLn $ "Listening on port " <> show port <> "..."
-  run port (app staticFilePath hovercrafts)
+  withStdoutLogger $ \aplogger -> do
+    let settings = setPort port $ setLogger aplogger defaultSettings
+    runSettings settings $ app staticFilePath hovercrafts
 
 opts :: Parser Options
 opts =

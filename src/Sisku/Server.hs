@@ -17,7 +17,7 @@ import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirector
 
 type API =
   "hovercraft" :> Get '[JSON] (Map Text Hovercraft)
-    :<|> "search" :> QueryParam "q" Text :> Get '[JSON] (Search Entry)
+    :<|> "search" :> QueryParam "placeholder" Text :> QueryParam "q" Text :> Get '[JSON] (Search Entry)
     :<|> Raw
 
 data Search a = Search
@@ -40,9 +40,9 @@ server staticFilePath hovercrafts =
 toEntries :: Map Text Hovercraft -> [Entry]
 toEntries hovercrafts = concatMap (\hovercraft -> concatMap (view entries) $ hovercraft ^. pages) $ Map.elems hovercrafts
 
-searchTokens :: Applicative f => [Entry] -> Maybe Text -> f (Search Entry)
-searchTokens _ Nothing = pure Search {query = "", results = []}
-searchTokens es (Just x) = pure Search {query = x, results = Search.search es x}
+searchTokens :: Applicative f => [Entry] -> Maybe Text -> Maybe Text -> f (Search Entry)
+searchTokens _ _ Nothing = pure Search {query = "", results = []}
+searchTokens es mp (Just x) = pure Search {query = x, results = Search.search (fromMaybe "_" mp) es x}
 
 getAllHovercrafts :: MonadIO m => m (Map Text Hovercraft)
 getAllHovercrafts = do
