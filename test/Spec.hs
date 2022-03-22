@@ -2,12 +2,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
+import Control.Lens (view, (^.))
 import qualified Data.Aeson as Aeson
+import Data.Maybe (fromJust)
 import Language.LSP.Types
 import Relude
 import Sisku.Commands.IndexLsp (Options (Options, configFilePath, outputFilePath))
 import qualified Sisku.Commands.IndexLsp as IndexLsp
 import Sisku.Hovercraft
+import Sisku.Search
 import System.Directory.Extra (getCurrentDirectory, makeAbsolute, setCurrentDirectory)
 import System.FilePath
 import Test.Hspec
@@ -22,6 +25,9 @@ main = do
       it "hello.test" $ hovercraft `shouldBe` Just (helloTestHovercraft rootPathTestServer uriTestServer)
       hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-haskell-language-server/test-haskell-language-server.json"
       it "haskell-language-server" $ isJust (hovercraft :: Maybe Hovercraft) `shouldBe` True
+      hovercraft <- pure $ fromJust hovercraft
+      entries <- pure $ concatMap (view entries) $ hovercraft ^. pages
+      it "search" $ (search entries "IO" /= []) `shouldBe` True
 
 -- | Initialize test-haskell-language-server
 initializeTestHLS :: IO FilePath
