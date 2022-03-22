@@ -16,15 +16,15 @@ main = do
   (rootPath, uri) <- initialize
   hspec $
     describe "index-lsp" $ do
-      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/hello.test.json"
+      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-server/hello.test.json"
       it "hello.test" $ hovercraft `shouldBe` Just (helloTestHovercraft rootPath uri)
 
 -- | Initialize the test suite.
 initialize :: IO (FilePath, Uri)
 initialize = do
   currentDirectory <- getCurrentDirectory
-  setCurrentDirectory "test/testcases"
-  -- Generate a hovercraft file for testcases/hello.test.
+  setCurrentDirectory "test/testcases/test-server"
+  -- Generate a hovercraft file for testcases/test-server/hello.test.
   testcase <- makeAbsolute "hello.test"
   IndexLsp.cmd
     Options
