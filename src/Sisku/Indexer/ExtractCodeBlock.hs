@@ -7,7 +7,7 @@ import Language.LSP.Types.Lens (HasContents (contents), HasValue (value))
 import Relude
 import Sisku.Hovercraft
 import Sisku.Indexer
-import Text.Parsec (anyChar, eof, manyTill, parse, satisfy, spaces)
+import Text.Parsec (anyChar, char, eof, manyTill, notFollowedBy, parse, satisfy, spaces, try)
 import Text.Parsec.Text (Parser)
 import Unicode.Char (isPunctuation, isSymbol, isXIDContinue, isXIDStart)
 
@@ -40,7 +40,7 @@ tokenize input = case parse
       spaces
       manyTill
         ( do
-            x <- pIdent <|> pSymbol <|> pOtherChar
+            x <- try pPlaceholder <|> pIdent <|> pSymbol <|> pOtherChar
             spaces
             pure x
         )
@@ -50,6 +50,12 @@ tokenize input = case parse
   input of
   Left err -> error $ show err
   Right x -> x
+
+pPlaceholder :: Parser Token
+pPlaceholder = do
+  _ <- char '_'
+  notFollowedBy (pIdent <|> pSymbol)
+  pure $ Placeholder "_"
 
 pIdent :: Parser Token
 pIdent = do
