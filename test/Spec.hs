@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 import qualified Data.Aeson as Aeson
 import Language.LSP.Types
@@ -10,18 +11,40 @@ import Sisku.Hovercraft
 import System.Directory.Extra (getCurrentDirectory, makeAbsolute, setCurrentDirectory)
 import System.FilePath
 import Test.Hspec
+import TestHLSHovercraft (testHLSHovercraft)
 
 main :: IO ()
 main = do
-  (rootPath, uri) <- initialize
+  (rootPathTestServer, uriTestServer) <- initializeTestServer
+  rootPathTestHLS <- initializeTestHLS
   hspec $
     describe "index-lsp" $ do
       hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-server/hello.test.json"
-      it "hello.test" $ hovercraft `shouldBe` Just (helloTestHovercraft rootPath uri)
+      it "hello.test" $ hovercraft `shouldBe` Just (helloTestHovercraft rootPathTestServer uriTestServer)
+      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-haskell-language-server/test-haskell-language-server.json"
+      it "haskell-language-server" $ hovercraft `shouldBe` Just (testHLSHovercraft $ toText rootPathTestHLS)
 
--- | Initialize the test suite.
-initialize :: IO (FilePath, Uri)
-initialize = do
+-- | Initialize test-haskell-language-server
+initializeTestHLS :: IO FilePath
+initializeTestHLS = do
+  currentDirectory <- getCurrentDirectory
+  let testPath = currentDirectory </> "test/testcases/test-haskell-language-server"
+  setCurrentDirectory testPath
+  -- Generate a hovercraft file for test-haskell-language-server
+  let hovercraftFilePath = testPath </> "test-haskell-language-server.json"
+  IndexLsp.cmd
+    Options
+      { configFilePath = "sisku_config.json",
+        outputFilePath = Just hovercraftFilePath,
+        debugMode = False
+      }
+  let rootPath = takeDirectory hovercraftFilePath
+  setCurrentDirectory currentDirectory
+  pure rootPath
+
+-- | Initialize test-server.
+initializeTestServer :: IO (FilePath, Uri)
+initializeTestServer = do
   currentDirectory <- getCurrentDirectory
   setCurrentDirectory "test/testcases/test-server"
   -- Generate a hovercraft file for testcases/test-server/hello.test.
@@ -29,7 +52,8 @@ initialize = do
   IndexLsp.cmd
     Options
       { configFilePath = "sisku_config.json",
-        outputFilePath = Just $ testcase <> ".json"
+        outputFilePath = Just $ testcase <> ".json",
+        debugMode = False
       }
   let rootPath = takeDirectory testcase
 

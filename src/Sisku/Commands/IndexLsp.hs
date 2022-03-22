@@ -11,7 +11,8 @@ import Sisku.Indexer.ExtractCodeBlock
 
 data Options = Options
   { configFilePath :: FilePath,
-    outputFilePath :: Maybe FilePath
+    outputFilePath :: Maybe FilePath,
+    debugMode :: Bool
   }
 
 cmd :: Options -> IO ()
@@ -20,6 +21,8 @@ cmd Options {..} = do
   runSiskuApp config do
     let ExhaustiveIndexer indexer = build (defaultLanguageClient & extractCodeBlock)
     hovercraft <- indexer
+    when debugMode $
+      print hovercraft
     writeHovercraft outputFilePath hovercraft
 
 opts :: Parser Options
@@ -27,6 +30,7 @@ opts =
   Options
     <$> strOption (short 'c' <> long "config" <> metavar "<config>" <> help "Path to the config file" <> value "sisku_config.json")
     <*> optional (strOption (short 'o' <> long "output" <> metavar "<output>" <> help "Path to the output file"))
+    <*> switch (short 'd' <> long "debug" <> help "Enable debug mode")
 
 parser :: Mod CommandFields (IO ())
 parser = command "index-lsp" (info (cmd <$> opts) (progDesc "Make a index via LSP."))
