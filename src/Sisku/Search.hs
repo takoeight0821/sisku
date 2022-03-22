@@ -9,7 +9,7 @@ import Sisku.Indexer.ExtractCodeBlock (tokenize)
 
 search :: Text -> [Entry] -> Text -> [Entry]
 search placeholderText entries query =
-  take 100 $ sortOn ((minimum . (maxBound :) . map (levenshtein ?? tokenize placeholderText query)) . view signatureToken) entries
+  sortOn ((minimum . (maxBound :) . map (levenshtein ?? tokenize placeholderText query)) . view signatureToken) entries
 
 -- from https://rosettacode.org/wiki/Levenshtein_distance#Haskell
 -- TODO: make more readable

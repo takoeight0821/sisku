@@ -9,7 +9,8 @@ import qualified Data.Map as Map
 import Network.Wai.Middleware.Rewrite (rewriteRoot)
 import Relude
 import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp, type (:<|>) ((:<|>)), type (:>))
-import Servant.API (QueryParam)
+import Servant.API (QueryParam, QueryParams)
+import Sisku.Config (HasProjectId (projectId))
 import Sisku.Hovercraft
 import qualified Sisku.Search as Search
 import System.FilePath (takeBaseName, (</>))
@@ -17,7 +18,7 @@ import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirector
 
 type API =
   "hovercraft" :> Get '[JSON] (Map Text Hovercraft)
-    :<|> "search" :> QueryParam "placeholder" Text :> QueryParam "q" Text :> Get '[JSON] (Search Entry)
+    :<|> "search" :> QueryParam "placeholder" Text :> QueryParams "projectIds" Text :> QueryParam "q" Text :> Get '[JSON] (Search Entry)
     :<|> Raw
 
 data Search a = Search
@@ -40,9 +41,14 @@ server staticFilePath hovercrafts =
 toEntries :: Map Text Hovercraft -> [Entry]
 toEntries hovercrafts = concatMap (\hovercraft -> concatMap (view entries) $ hovercraft ^. pages) $ Map.elems hovercrafts
 
-searchTokens :: Applicative f => [Entry] -> Maybe Text -> Maybe Text -> f (Search Entry)
-searchTokens _ _ Nothing = pure Search {query = "", results = []}
-searchTokens es mp (Just x) = pure Search {query = x, results = Search.search (fromMaybe "_" mp) es x}
+searchTokens :: Applicative f => [Entry] -> Maybe Text -> [Text] -> Maybe Text -> f (Search Entry)
+searchTokens _ _ _ Nothing = pure Search {query = "", results = []}
+searchTokens es mplaceholder projectIds (Just x) = do
+  let results =
+        Search.search (fromMaybe "_" mplaceholder) es x
+          & filter (\e -> (e ^. projectId) `elem` projectIds)
+          & take 100
+  pure Search {query = x, results = results}
 
 getAllHovercrafts :: MonadIO m => m (Map Text Hovercraft)
 getAllHovercrafts = do
