@@ -1,0 +1,6 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:test-haskell-language-server"
+    - path: "app"
+      component: "test-haskell-language-server:exe:test-haskell-language-server"

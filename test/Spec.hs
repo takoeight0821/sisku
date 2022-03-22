@@ -1,35 +1,64 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
+import Control.Lens (view, (^.))
 import qualified Data.Aeson as Aeson
+import Data.Maybe (fromJust)
 import Language.LSP.Types
 import Relude
 import Sisku.Commands.IndexLsp (Options (Options, configFilePath, outputFilePath))
 import qualified Sisku.Commands.IndexLsp as IndexLsp
 import Sisku.Hovercraft
+import Sisku.Search
 import System.Directory.Extra (getCurrentDirectory, makeAbsolute, setCurrentDirectory)
 import System.FilePath
 import Test.Hspec
 
 main :: IO ()
 main = do
-  (rootPath, uri) <- initialize
+  (rootPathTestServer, uriTestServer) <- initializeTestServer
+  _ <- initializeTestHLS
   hspec $
     describe "index-lsp" $ do
-      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/hello.test.json"
-      it "hello.test" $ hovercraft `shouldBe` Just (helloTestHovercraft rootPath uri)
+      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-server/hello.test.json"
+      it "hello.test" $ hovercraft `shouldBe` Just (helloTestHovercraft rootPathTestServer uriTestServer)
+      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-haskell-language-server/test-haskell-language-server.json"
+      it "haskell-language-server" $ isJust (hovercraft :: Maybe Hovercraft) `shouldBe` True
+      hovercraft <- pure $ fromJust hovercraft
+      entries <- pure $ concatMap (view entries) $ hovercraft ^. pages
+      it "search" $ (search entries "IO" /= []) `shouldBe` True
 
--- | Initialize the test suite.
-initialize :: IO (FilePath, Uri)
-initialize = do
+-- | Initialize test-haskell-language-server
+initializeTestHLS :: IO FilePath
+initializeTestHLS = do
   currentDirectory <- getCurrentDirectory
-  setCurrentDirectory "test/testcases"
-  -- Generate a hovercraft file for testcases/hello.test.
+  let testPath = currentDirectory </> "test/testcases/test-haskell-language-server"
+  setCurrentDirectory testPath
+  -- Generate a hovercraft file for test-haskell-language-server
+  let hovercraftFilePath = testPath </> "test-haskell-language-server.json"
+  IndexLsp.cmd
+    Options
+      { configFilePath = "sisku_config.json",
+        outputFilePath = Just hovercraftFilePath,
+        debugMode = False
+      }
+  let rootPath = takeDirectory hovercraftFilePath
+  setCurrentDirectory currentDirectory
+  pure rootPath
+
+-- | Initialize test-server.
+initializeTestServer :: IO (FilePath, Uri)
+initializeTestServer = do
+  currentDirectory <- getCurrentDirectory
+  setCurrentDirectory "test/testcases/test-server"
+  -- Generate a hovercraft file for testcases/test-server/hello.test.
   testcase <- makeAbsolute "hello.test"
   IndexLsp.cmd
     Options
       { configFilePath = "sisku_config.json",
-        outputFilePath = Just $ testcase <> ".json"
+        outputFilePath = Just $ testcase <> ".json",
+        debugMode = False
       }
   let rootPath = takeDirectory testcase
 
