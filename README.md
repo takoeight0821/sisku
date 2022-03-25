@@ -109,22 +109,31 @@ sisku index-lsp --config sisku_config.json
 This is the list of config fields:
 
 * projectId (type: string)
-		* The identifier of the project. It must be unique across all projects indexed in Sisku.
+
+		The identifier of the project. It must be unique across all projects indexed in Sisku.
 
 * lspSettingMap (type: object)
-		* Keys are only used internally, so it can be anything that is not duplicated.
+		
+		Keys are only used internally, so it can be anything that is not duplicated.
 
 * lspSettingMap.<key>.language (type: string)
-		* Language name
+		
+		Language name
 
 * lspSettingMap.<key>.root_uri_patterns (type: string[])
-		* Patterns with file or directory names for finding root_uri (see https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initializeParams )
+		
+		Patterns with file or directory names for finding root_uri.
+
+		(See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initializeParams )
 
 * lspSettingMap.<key>.exclude_patterns (type: string[])
-		* Patterns specifying files to be excluded from indexing.
+
+		Patterns specifying files to be excluded from indexing.
 
 * lspSettingMap.<key>.command (type: string)
-		* Command to launch a Language Server
+
+		Command to launch a Language Server
 
 * lspSettingMap.<key>.extensions (type: string[])
-		* List of source code extensions.
+
+		List of source code extensions.
