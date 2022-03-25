@@ -6,11 +6,11 @@ The Polyglot API Search Engine, based on LSP.
 
 Token-based search for signatures.
 
-![Token-based search for signatures](https://raw.githubusercontent.com/takoeight0821/sisku/main/docs/images/token-based.gif)
+![Token-based search for signatures](https://raw.githubusercontent.com/takoeight0821/sisku/main/docs/images/token-based.png)
 
 Fuzzy search for documentations.
 
-![Fuzzy search for documentations](https://raw.githubusercontent.com/takoeight0821/sisku/main/docs/images/fuzzy.gif)
+![Fuzzy search for documentations](https://raw.githubusercontent.com/takoeight0821/sisku/main/docs/images/fuzzy.png)
 
 ## Installation
 
