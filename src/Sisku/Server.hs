@@ -6,10 +6,6 @@ import Control.Lens (view, (^.))
 import Data.Aeson (ToJSON)
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
-<<<<<<< HEAD
-import Network.Wai.Middleware.Cors (CorsResourcePolicy (corsRequestHeaders), cors, simpleCorsResourcePolicy)
-=======
->>>>>>> parent of e40e097 (Enable CORS)
 import Network.Wai.Middleware.Rewrite (rewriteRoot)
 import Relude
 import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp, type (:<|>) ((:<|>)), type (:>))
