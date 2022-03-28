@@ -48,7 +48,6 @@ searchTokens es mplaceholder projectIds (Just x) = do
   let results =
         Search.search (fromMaybe "_" mplaceholder) es x
           & filter (\e -> (e ^. projectId) `elem` projectIds)
-          & take 100
   pure Search {query = x, results = results}
 
 getAllHovercrafts :: MonadIO m => m (Map Text Hovercraft)
