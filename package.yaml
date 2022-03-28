@@ -49,7 +49,6 @@ dependencies:
   - warp
   - wai-logger
   - wai-extra
-  - wai-cors
   - parsec
   - unicode-data
   - full-text-search

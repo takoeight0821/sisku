@@ -118,7 +118,6 @@ library
     , unordered-containers
     , uuid
     , wai
-    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -208,7 +207,6 @@ executable sisku
     , unordered-containers
     , uuid
     , wai
-    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -299,7 +297,6 @@ executable test-server
     , unordered-containers
     , uuid
     , wai
-    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -391,7 +388,6 @@ test-suite sisku-test
     , unordered-containers
     , uuid
     , wai
-    , wai-cors
     , wai-extra
     , wai-logger
     , warp
