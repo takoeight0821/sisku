@@ -46,7 +46,7 @@ npm install
 $ cat sisku_config.json
 {
   "projectId": "com.github.takoeight0821.sisku",
-  "lspSettings": {
+  "lspSettingMap": {
     "haskell": {
       "language": "haskell",
       "root_uri_patterns": [
