@@ -6,7 +6,7 @@ import Control.Lens (view, (^.))
 import Data.Aeson (ToJSON)
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
-import Network.Wai.Middleware.Cors (CorsResourcePolicy (corsRequestHeaders), cors, simpleCors, simpleCorsResourcePolicy)
+import Network.Wai.Middleware.Cors (CorsResourcePolicy (corsRequestHeaders), cors, simpleCorsResourcePolicy)
 import Network.Wai.Middleware.Rewrite (rewriteRoot)
 import Relude
 import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp, type (:<|>) ((:<|>)), type (:>))
