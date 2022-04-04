@@ -38,6 +38,7 @@ library
       Sisku.Lsp
       Sisku.Search
       Sisku.Server
+      Sisku.Token
   other-modules:
       Paths_sisku
   hs-source-dirs:

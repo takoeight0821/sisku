@@ -6,7 +6,7 @@ import GHC.Real (infinity)
 import Relude
 import qualified Relude.Unsafe as Unsafe
 import Sisku.Hovercraft hiding (entries)
-import Sisku.Indexer.ExtractCodeBlock (tokenize)
+import Sisku.Token
 
 search :: Text -> [Entry] -> Text -> [Entry]
 search placeholderText entries query =

@@ -11,6 +11,7 @@ import Sisku.Commands.IndexLsp (Options (Options, configFilePath, outputFilePath
 import qualified Sisku.Commands.IndexLsp as IndexLsp
 import Sisku.Hovercraft
 import Sisku.Search
+import Sisku.Token
 import System.Directory.Extra (getCurrentDirectory, makeAbsolute, setCurrentDirectory)
 import System.FilePath
 import Test.Hspec

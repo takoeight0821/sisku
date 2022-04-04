@@ -7,14 +7,11 @@ module Sisku.Hovercraft where
 import Control.Lens ((^.))
 import Control.Lens.TH
 import Data.Aeson
-import qualified Data.Aeson as Aeson
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens
 import Relude
-import Sisku.App
-import Sisku.Config
-import System.Directory.Extra (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
-import System.FilePath ((</>))
+import Sisku.Config (HasProjectId (..))
+import Sisku.Token
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Eq, Show, Generic)
@@ -38,37 +35,6 @@ instance ToJSON Definition where
   toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
 
 instance FromJSON Definition where
-  parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
-
-data Token
-  = Ident {_identifier :: Text}
-  | Symbol {_symbol :: Text}
-  | Placeholder {_placeholder :: Text}
-  | OtherChar {_char :: Char}
-  deriving stock (Show, Generic)
-
-instance Eq Token where
-  a == b = a `compare` b == EQ
-
-instance Ord Token where
-  Placeholder {} `compare` _ = EQ
-  _ `compare` Placeholder {} = EQ
-  (Ident a) `compare` (Ident b) = a `compare` b
-  (Symbol a) `compare` (Symbol b) = a `compare` b
-  (OtherChar a) `compare` (OtherChar b) = a `compare` b
-  a `compare` b = tagToInt a `compare` tagToInt b
-    where
-      tagToInt :: Token -> Int
-      tagToInt Placeholder {} = -1
-      tagToInt Ident {} = 0
-      tagToInt Symbol {} = 1
-      tagToInt OtherChar {} = 2
-
-instance ToJSON Token where
-  toJSON = genericToJSON defaultOptions {fieldLabelModifier = drop 1}
-  toEncoding = genericToEncoding defaultOptions {fieldLabelModifier = drop 1}
-
-instance FromJSON Token where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
 -- | Hover document and definition information
@@ -119,17 +85,3 @@ instance FromJSON Hovercraft where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
 makeFieldsNoPrefix ''Hovercraft
-
--- | Get XDG_DATA_HOME
-getDataHome :: IO FilePath
-getDataHome = getXdgDirectory XdgData "sisku/hovercraft"
-
--- | Write hovercraft to file
-writeHovercraft :: (MonadSiskuApp m, MonadIO m) => Maybe FilePath -> Hovercraft -> m ()
-writeHovercraft Nothing hc = do
-  dataHome <- liftIO getDataHome
-  liftIO $ createDirectoryIfMissing True dataHome
-  config <- getConfig
-  let file = dataHome </> (toString (config ^. projectId) <> ".json")
-  liftIO $ Aeson.encodeFile file hc
-writeHovercraft (Just file) hc = liftIO $ Aeson.encodeFile file hc

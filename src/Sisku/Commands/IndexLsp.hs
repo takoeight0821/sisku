@@ -1,13 +1,17 @@
 module Sisku.Commands.IndexLsp (cmd, Options (..), parser) where
 
+import Control.Lens ((^.))
+import qualified Data.Aeson as Aeson
 import Options.Applicative
 import Relude
 import Sisku.App
 import Sisku.Config
-import Sisku.Hovercraft (writeHovercraft)
+import Sisku.Hovercraft
 import Sisku.Indexer
 import Sisku.Indexer.Exhaustive
 import Sisku.Indexer.ExtractCodeBlock
+import System.FilePath ((</>))
+import UnliftIO.Directory (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 
 data Options = Options
   { configFilePath :: FilePath,
@@ -34,3 +38,17 @@ opts =
 
 parser :: Mod CommandFields (IO ())
 parser = command "index-lsp" (info (cmd <$> opts) (progDesc "Make a index via LSP."))
+
+-- | Get XDG_DATA_HOME
+getDataHome :: IO FilePath
+getDataHome = getXdgDirectory XdgData "sisku/hovercraft"
+
+-- | Write hovercraft to file
+writeHovercraft :: (MonadSiskuApp m, MonadIO m) => Maybe FilePath -> Hovercraft -> m ()
+writeHovercraft Nothing hc = do
+  dataHome <- liftIO getDataHome
+  liftIO $ createDirectoryIfMissing True dataHome
+  config <- getConfig
+  let file = dataHome </> (toString (config ^. projectId) <> ".json")
+  liftIO $ Aeson.encodeFile file hc
+writeHovercraft (Just file) hc = liftIO $ Aeson.encodeFile file hc
