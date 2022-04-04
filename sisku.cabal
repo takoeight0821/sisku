@@ -98,7 +98,6 @@ library
     , fgl
     , filepath
     , flow
-    , full-text-search
     , lens
     , lens-aeson
     , lsp-test
@@ -113,7 +112,6 @@ library
     , servant
     , servant-server
     , text
-    , tokenize
     , unicode-data
     , unliftio
     , unordered-containers
@@ -186,7 +184,6 @@ executable sisku
     , fgl
     , filepath
     , flow
-    , full-text-search
     , lens
     , lens-aeson
     , lsp-test
@@ -202,7 +199,6 @@ executable sisku
     , servant-server
     , sisku
     , text
-    , tokenize
     , unicode-data
     , unliftio
     , unordered-containers
@@ -275,7 +271,6 @@ executable test-server
     , fgl
     , filepath
     , flow
-    , full-text-search
     , lens
     , lens-aeson
     , lsp
@@ -292,7 +287,6 @@ executable test-server
     , servant-server
     , sisku
     , text
-    , tokenize
     , unicode-data
     , unliftio
     , unordered-containers
@@ -366,7 +360,6 @@ test-suite sisku-test
     , fgl
     , filepath
     , flow
-    , full-text-search
     , hspec
     , lens
     , lens-aeson
@@ -383,7 +376,6 @@ test-suite sisku-test
     , servant-server
     , sisku
     , text
-    , tokenize
     , unicode-data
     , unliftio
     , unordered-containers

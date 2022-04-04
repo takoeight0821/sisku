@@ -8,15 +8,24 @@ import qualified Relude.Unsafe as Unsafe
 import Sisku.Hovercraft hiding (entries)
 import Sisku.Token
 
-search :: Text -> [Entry] -> Text -> [Entry]
+search :: Text -> [Entry] -> Text -> [(Entry, Double)]
 search placeholderText entries query =
-  sortOn
-    ( view signatureToken
-        >>> map (levenshtein tokenDiff ?? tokenize placeholderText query)
-        >>> (fromRational infinity :)
-        >>> minimum
-    )
-    entries
+  sortOn snd $
+    map ?? entries $ \entry ->
+      ( entry,
+        view signatureToken entry
+          & map (levenshtein tokenDiff ?? tokenize placeholderText query)
+          & (fromRational infinity :)
+          & minimum
+      )
+
+-- sortOn
+--   ( view signatureToken
+--       >>> map (levenshtein tokenDiff ?? tokenize placeholderText query)
+--       >>> (fromRational infinity :)
+--       >>> minimum
+--   )
+--   entries
 
 -- from https://rosettacode.org/wiki/Levenshtein_distance#Haskell
 -- TODO: make more readable

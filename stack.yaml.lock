@@ -3,59 +3,10 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: relude-1.0.0.1@sha256:35bcdaf14018e79f11e712b0e2314c1aac79976f28f4adc179985457493557d5,11569
-    pantry-tree:
-      size: 4282
-      sha256: ead687d39d06c841de36fc214402ad4389e8837284485cfe52d975f51b274e81
-  original:
-    hackage: relude-1.0.0.1
-- completed:
-    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
-    pantry-tree:
-      size: 594
-      sha256: 3ce1012bfb02e4d7def9df19ce80b8cd2b472c691b25b181d9960638673fecd1
-  original:
-    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
-- completed:
-    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
-    pantry-tree:
-      size: 867
-      sha256: c3422b7121927dd912d2b2b40d12f8addd991b83933d9f1415dfac883ada0c46
-  original:
-    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
-- completed:
-    hackage: co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
-    pantry-tree:
-      size: 1126
-      sha256: e73165ff8f744709428e2e87984c9d60ca1cec43d8455c413181c7c466e7497c
-  original:
-    hackage: co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
-- completed:
-    hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
-    pantry-tree:
-      size: 1461
-      sha256: 02f05d52be3ffcf36c78876629cbab80b63420672685371aea4fd10e1c4aabb6
-  original:
-    hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
-- completed:
-    hackage: full-text-search-0.2.1.4@sha256:81f6df3327e5b604f99b15e78635e5d6ca996e504c21d268a6d751d7d131aa36,6032
-    pantry-tree:
-      size: 1743
-      sha256: 90b7cf8646ad1a7e3b6144ebeefa5af4d6bddec070eadb8e17489ae769612260
-  original:
-    hackage: full-text-search-0.2.1.4@sha256:81f6df3327e5b604f99b15e78635e5d6ca996e504c21d268a6d751d7d131aa36,6032
-- completed:
-    hackage: tokenize-0.3.0@sha256:73e4e845359ff60e51d30f3c33b751ced1076fac5e6640243463795260172ee0,2256
-    pantry-tree:
-      size: 402
-      sha256: 9d3349fd6c99072d48683d133d79bb421ac7ad99d365d41900d33edc5eeab727
-  original:
-    hackage: tokenize-0.3.0@sha256:73e4e845359ff60e51d30f3c33b751ced1076fac5e6640243463795260172ee0,2256
+packages: []
 snapshots:
 - completed:
-    size: 610848
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/3/9.yaml
-    sha256: d24718f2b7d7af47d1f10899f53331e2456beea22996628ff864a0a259f53fe3
-  original: nightly-2022-03-09
+    size: 617368
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/2.yaml
+    sha256: e7e57649a12f6178d1158e4b6f1f1885ed56d210ae6174385271cecc9b1ea974
+  original: lts-19.2

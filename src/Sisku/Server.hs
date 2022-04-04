@@ -21,9 +21,17 @@ type API =
     :<|> "search" :> QueryParam "placeholder" Text :> QueryParams "projectIds" Text :> QueryParam "q" Text :> Get '[JSON] (Search Entry)
     :<|> Raw
 
+data Result a = Result
+  { hit :: a,
+    score :: Double
+  }
+  deriving stock (Generic)
+
+instance ToJSON a => ToJSON (Result a)
+
 data Search a = Search
   { query :: Text,
-    results :: [a]
+    results :: [Result a]
   }
   deriving stock (Generic)
 
@@ -46,7 +54,8 @@ searchTokens _ _ _ Nothing = pure Search {query = "", results = []}
 searchTokens es mplaceholder projectIds (Just x) = do
   let results =
         Search.search (fromMaybe "_" mplaceholder) es x
-          & filter (\e -> (e ^. projectId) `elem` projectIds)
+          & filter (\(e, _) -> (e ^. projectId) `elem` projectIds)
+          & map (\(e, s) -> Result {hit = e, score = s})
   pure Search {query = x, results = results}
 
 getAllHovercrafts :: MonadIO m => m (Map Text Hovercraft)

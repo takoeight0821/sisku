@@ -51,9 +51,7 @@ dependencies:
   - wai-extra
   - parsec
   - unicode-data
-  - full-text-search
   - uuid
-  - tokenize
   - witherable
 
 ghc-options:
