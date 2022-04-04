@@ -14,18 +14,10 @@ search placeholderText entries query =
     map ?? entries $ \entry ->
       ( entry,
         view signatureToken entry
-          & map (levenshtein tokenDiff ?? tokenize placeholderText query)
+          & map (levenshtein (\a b -> if a == b then 0 else 1) ?? tokenize placeholderText query)
           & (fromRational infinity :)
           & minimum
       )
-
--- sortOn
---   ( view signatureToken
---       >>> map (levenshtein tokenDiff ?? tokenize placeholderText query)
---       >>> (fromRational infinity :)
---       >>> minimum
---   )
---   entries
 
 -- from https://rosettacode.org/wiki/Levenshtein_distance#Haskell
 -- TODO: make more readable
