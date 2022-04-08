@@ -10,6 +10,7 @@ import Sisku.Hovercraft
 import Sisku.Indexer
 import Sisku.Indexer.Exhaustive
 import Sisku.Indexer.ExtractCodeBlock
+import Sisku.Indexer.FilterHaskell (filterHaskell)
 import System.FilePath ((</>))
 import UnliftIO.Directory (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 
@@ -23,7 +24,7 @@ cmd :: Options -> IO ()
 cmd Options {..} = do
   config <- loadConfig configFilePath
   runSiskuApp config do
-    let ExhaustiveIndexer indexer = build (defaultLanguageClient & extractCodeBlock)
+    let ExhaustiveIndexer indexer = build (defaultLanguageClient & filterHaskell & extractCodeBlock)
     hovercraft <- indexer
     when debugMode $
       print hovercraft
