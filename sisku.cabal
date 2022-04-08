@@ -34,6 +34,7 @@ library
       Sisku.Indexer.Common
       Sisku.Indexer.Exhaustive
       Sisku.Indexer.ExtractCodeBlock
+      Sisku.Indexer.FilterHaskell
       Sisku.Indexer.MiddlewareExample
       Sisku.Lsp
       Sisku.Search
