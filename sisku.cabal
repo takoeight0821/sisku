@@ -27,6 +27,7 @@ library
   exposed-modules:
       Sisku.App
       Sisku.Commands.IndexLsp
+      Sisku.Commands.Search
       Sisku.Commands.Server
       Sisku.Config
       Sisku.Hovercraft

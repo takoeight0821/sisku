@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Sisku.Server (app, getAllHovercrafts) where
+module Sisku.Server (app, getAllHovercrafts, toEntries) where
 
 import Control.Lens (view, (^.))
 import Data.Aeson (ToJSON)
