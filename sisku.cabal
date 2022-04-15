@@ -27,6 +27,7 @@ library
   exposed-modules:
       Sisku.App
       Sisku.Commands.IndexLsp
+      Sisku.Commands.Search
       Sisku.Commands.Server
       Sisku.Config
       Sisku.Hovercraft
@@ -105,6 +106,7 @@ library
     , lsp-types
     , optparse-applicative
     , parsec
+    , pretty
     , pretty-simple
     , process
     , relude >=1.0
@@ -116,7 +118,6 @@ library
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -191,6 +192,7 @@ executable sisku
     , lsp-types
     , optparse-applicative
     , parsec
+    , pretty
     , pretty-simple
     , process
     , relude >=1.0
@@ -203,7 +205,6 @@ executable sisku
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -279,6 +280,7 @@ executable test-server
     , lsp-types
     , optparse-applicative
     , parsec
+    , pretty
     , pretty-simple
     , process
     , relude >=1.0
@@ -291,7 +293,6 @@ executable test-server
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -368,6 +369,7 @@ test-suite sisku-test
     , lsp-types
     , optparse-applicative
     , parsec
+    , pretty
     , pretty-simple
     , process
     , relude >=1.0
@@ -380,7 +382,6 @@ test-suite sisku-test
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger

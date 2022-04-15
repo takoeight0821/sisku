@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Sisku.Server (app, getAllHovercrafts) where
+module Sisku.Server (app, getAllHovercrafts, toEntries) where
 
 import Control.Lens (view, (^.))
 import Data.Aeson (ToJSON)
@@ -12,30 +12,23 @@ import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp
 import Servant.API (QueryParam, QueryParams)
 import Sisku.Config (HasProjectId (projectId))
 import Sisku.Hovercraft
+import Sisku.Search (SearchResult (SearchResult))
 import qualified Sisku.Search as Search
 import System.FilePath (takeBaseName, (</>))
 import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirectory)
 
 type API =
   "hovercraft" :> Get '[JSON] (Map Text Hovercraft)
-    :<|> "search" :> QueryParam "placeholder" Text :> QueryParams "projectIds" Text :> QueryParam "q" Text :> Get '[JSON] (Search Entry)
+    :<|> "search" :> QueryParam "placeholder" Text :> QueryParams "projectIds" Text :> QueryParam "q" Text :> Get '[JSON] Search
     :<|> Raw
 
-data Result a = Result
-  { hit :: a,
-    score :: Double
-  }
-  deriving stock (Generic)
-
-instance ToJSON a => ToJSON (Result a)
-
-data Search a = Search
+data Search = Search
   { query :: Text,
-    results :: [Result a]
+    results :: [SearchResult]
   }
   deriving stock (Generic)
 
-instance ToJSON a => ToJSON (Search a)
+instance ToJSON Search
 
 api :: Proxy API
 api = Proxy
@@ -49,13 +42,12 @@ server staticFilePath hovercrafts =
 toEntries :: Map Text Hovercraft -> [Entry]
 toEntries hovercrafts = concatMap (\hovercraft -> concatMap (view entries) $ hovercraft ^. pages) $ Map.elems hovercrafts
 
-searchTokens :: Applicative f => [Entry] -> Maybe Text -> [Text] -> Maybe Text -> f (Search Entry)
+searchTokens :: Applicative f => [Entry] -> Maybe Text -> [Text] -> Maybe Text -> f Search
 searchTokens _ _ _ Nothing = pure Search {query = "", results = []}
 searchTokens es mplaceholder projectIds (Just x) = do
   let results =
         Search.search (fromMaybe "_" mplaceholder) es x
-          & filter (\(e, _) -> (e ^. projectId) `elem` projectIds)
-          & map (\(e, s) -> Result {hit = e, score = s})
+          & filter (\SearchResult {hit = e} -> (e ^. projectId) `elem` projectIds)
   pure Search {query = x, results = results}
 
 getAllHovercrafts :: MonadIO m => m (Map Text Hovercraft)

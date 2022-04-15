@@ -20,38 +20,38 @@ extra-source-files:
 description: Please see the README on GitHub at <https://github.com/takoeight0821/sisku#readme>
 
 dependencies:
+  - Glob
   - aeson
   - async
   - base # >= 4.7 && < 5
   - containers
-  - unordered-containers
-  - extra
   - exceptions
+  - extra
   - fgl
   - filepath
   - flow
-  - Glob
   - lens
   - lens-aeson
   - lsp-test
   - lsp-types
   - optparse-applicative
+  - parsec
+  - pretty
   - pretty-simple
   - process
   - relude >= 1.0
-  - text
-  - safe-exceptions
   - req
-  - unliftio
+  - safe-exceptions
   - servant
   - servant-server
-  - wai
-  - warp
-  - wai-logger
-  - wai-extra
-  - parsec
+  - text
   - unicode-data
-  - uuid
+  - unliftio
+  - unordered-containers
+  - wai
+  - wai-extra
+  - wai-logger
+  - warp
   - witherable
 
 ghc-options:

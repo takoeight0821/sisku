@@ -11,7 +11,11 @@ import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens
 import Relude
 import Sisku.Config (HasProjectId (..))
+-- import `Pretty Hover`
+import Sisku.Lsp ()
 import Sisku.Token
+import Text.PrettyPrint.HughesPJClass (Pretty (..))
+import qualified Text.PrettyPrint.HughesPJClass as Pretty
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Eq, Show, Generic)
@@ -55,6 +59,9 @@ instance ToJSON Entry where
 
 instance FromJSON Entry where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+instance Pretty Entry where
+  pPrint Entry {..} = pPrint _hover
 
 makeFieldsNoPrefix ''Entry
 
