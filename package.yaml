@@ -48,7 +48,6 @@ dependencies:
   - unicode-data
   - unliftio
   - unordered-containers
-  - uuid
   - wai
   - wai-extra
   - wai-logger

@@ -118,7 +118,6 @@ library
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -206,7 +205,6 @@ executable sisku
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -295,7 +293,6 @@ executable test-server
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -385,7 +382,6 @@ test-suite sisku-test
     , unicode-data
     , unliftio
     , unordered-containers
-    , uuid
     , wai
     , wai-extra
     , wai-logger
