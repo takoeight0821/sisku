@@ -139,5 +139,5 @@ instance Craftable Position where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        entry <- decorate entry
-        pure [entry]
+        entries <- decorate entry
+        pure entries
