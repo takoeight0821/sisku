@@ -92,33 +92,23 @@ library
   build-depends:
       Glob
     , aeson
-    , async
     , base
     , containers
-    , exceptions
     , extra
-    , fgl
     , filepath
     , flow
     , lens
-    , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
     , parsec
     , pretty
-    , pretty-simple
-    , process
     , relude >=1.0
-    , req
-    , safe-exceptions
     , servant
     , servant-server
     , text
     , unicode-data
     , unliftio
-    , unordered-containers
-    , wai
     , wai-extra
     , wai-logger
     , warp
@@ -178,34 +168,24 @@ executable sisku
   build-depends:
       Glob
     , aeson
-    , async
     , base
     , containers
-    , exceptions
     , extra
-    , fgl
     , filepath
     , flow
     , lens
-    , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
     , parsec
     , pretty
-    , pretty-simple
-    , process
     , relude >=1.0
-    , req
-    , safe-exceptions
     , servant
     , servant-server
     , sisku
     , text
     , unicode-data
     , unliftio
-    , unordered-containers
-    , wai
     , wai-extra
     , wai-logger
     , warp
@@ -265,35 +245,25 @@ executable test-server
   build-depends:
       Glob
     , aeson
-    , async
     , base
     , containers
-    , exceptions
     , extra
-    , fgl
     , filepath
     , flow
     , lens
-    , lens-aeson
     , lsp
     , lsp-test
     , lsp-types
     , optparse-applicative
     , parsec
     , pretty
-    , pretty-simple
-    , process
     , relude >=1.0
-    , req
-    , safe-exceptions
     , servant
     , servant-server
     , sisku
     , text
     , unicode-data
     , unliftio
-    , unordered-containers
-    , wai
     , wai-extra
     , wai-logger
     , warp
@@ -354,35 +324,25 @@ test-suite sisku-test
   build-depends:
       Glob
     , aeson
-    , async
     , base
     , containers
-    , exceptions
     , extra
-    , fgl
     , filepath
     , flow
     , hspec
     , lens
-    , lens-aeson
     , lsp-test
     , lsp-types
     , optparse-applicative
     , parsec
     , pretty
-    , pretty-simple
-    , process
     , relude >=1.0
-    , req
-    , safe-exceptions
     , servant
     , servant-server
     , sisku
     , text
     , unicode-data
     , unliftio
-    , unordered-containers
-    , wai
     , wai-extra
     , wai-logger
     , warp
