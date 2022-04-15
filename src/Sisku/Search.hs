@@ -13,7 +13,7 @@ import qualified Text.PrettyPrint.HughesPJClass as Pretty
 
 data SearchResult = SearchResult
   {hit :: Entry, score :: Double}
-  deriving stock (Show, Generic)
+  deriving stock (Eq, Show, Generic)
 
 instance ToJSON SearchResult
 
