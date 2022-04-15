@@ -30,7 +30,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-v1-${{ env.cache-name }}-
             ${{ runner.os }}-build-v1-
-            ${{ runner.os }}-
       - name: Install dependencies
         run: |
           cabal update
