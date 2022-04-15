@@ -1,23 +1,43 @@
-module Sisku.Search (search) where
+module Sisku.Search (search, SearchResult (..)) where
 
 import Control.Lens (view)
+import Data.Aeson
 import Data.Foldable (foldl, minimum)
 import GHC.Real (infinity)
 import Relude
 import qualified Relude.Unsafe as Unsafe
 import Sisku.Hovercraft hiding (entries)
 import Sisku.Token
+import Text.PrettyPrint.HughesPJClass (Pretty (pPrint))
+import qualified Text.PrettyPrint.HughesPJClass as Pretty
 
-search :: Text -> [Entry] -> Text -> [(Entry, Double)]
+data SearchResult = SearchResult
+  {hit :: Entry, score :: Double}
+  deriving stock (Show, Generic)
+
+instance ToJSON SearchResult
+
+instance FromJSON SearchResult
+
+instance Pretty SearchResult where
+  pPrint (SearchResult hit _) =
+    Pretty.sep
+      [ pPrint hit,
+        "_____"
+      ]
+
+search :: Text -> [Entry] -> Text -> [SearchResult]
 search placeholderText entries query =
-  sortOn snd $
+  sortOn score $
     map ?? entries $ \entry ->
-      ( entry,
-        view signatureToken entry
-          & map (levenshtein (\a b -> if a == b then 0 else 1) ?? tokenize placeholderText query)
-          & (fromRational infinity :)
-          & minimum
-      )
+      SearchResult
+        { hit = entry,
+          score =
+            view signatureToken entry
+              & map (levenshtein (\a b -> if a == b then 0 else 1) ?? tokenize placeholderText query)
+              & (fromRational infinity :)
+              & minimum
+        }
 
 -- from https://rosettacode.org/wiki/Levenshtein_distance#Haskell
 -- TODO: make more readable

@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-deprecations #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Sisku.Lsp (getDocumentSymbols, getHover, getDefinitions, uncozip, detectLanguage, searchRootPath, filterExcluded, getCommand, hoverContents) where
 
@@ -17,6 +18,8 @@ import System.Directory.Extra (doesFileExist, makeAbsolute)
 import System.FilePath
 import System.FilePath.Glob
 import System.Time.Extra (sleep)
+import Text.PrettyPrint.HughesPJClass (Pretty (..))
+import qualified Text.PrettyPrint.HughesPJClass as Pretty
 
 getDocumentSymbols :: TextDocumentIdentifier -> Session (Either [DocumentSymbol] [SymbolInformation])
 getDocumentSymbols doc = do
@@ -115,3 +118,25 @@ hoverContents Hover {_contents = HoverContentsMS ls} =
   mconcatMap ?? toList ls $ \case
     PlainString t -> t
     CodeString c -> c ^. value
+
+instance Pretty Hover where
+  pPrint Hover {_contents} = pPrint _contents
+
+instance Pretty HoverContents where
+  pPrint (HoverContentsMS msList) = Pretty.sep $ toList $ fmap pPrint msList
+  pPrint (HoverContents markup) = pPrint markup
+
+instance Pretty MarkupContent where
+  pPrint (MarkupContent {_value}) = Pretty.text $ toString _value
+
+instance Pretty MarkedString where
+  pPrint (PlainString s) = Pretty.text $ toString s
+  pPrint (CodeString ls) = pPrint ls
+
+instance Pretty LanguageString where
+  pPrint (LanguageString {..}) =
+    Pretty.vcat
+      [ "```" <> Pretty.text (toString _language),
+        Pretty.text $ toString _value,
+        "```"
+      ]

@@ -6,6 +6,7 @@ import Options.Applicative
 import Relude
 import qualified Sisku.Search as Search
 import Sisku.Server (getAllHovercrafts, toEntries)
+import Text.PrettyPrint.HughesPJClass (pPrint)
 
 newtype Options = Options
   { query :: Text
@@ -17,7 +18,7 @@ cmd Options {..} = do
   let results =
         Search.search "_" hs query
           & take 10
-  print results
+  mapM_ (print . pPrint) results
 
 opts :: Parser Options
 opts =
