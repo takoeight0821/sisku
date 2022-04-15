@@ -133,8 +133,8 @@ instance Craftable DocumentSymbol where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        entry <- decorate entry
-        pure [entry]
+        entries <- decorate entry
+        pure entries
       (Just hover, Just (List cs)) -> do
         let entry =
               Entry
@@ -146,8 +146,8 @@ instance Craftable DocumentSymbol where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        entry <- decorate entry
-        (entry :) <$> craft env doc cs
+        entries <- decorate entry
+        (entries <>) <$> craft env doc cs
 
 instance Craftable SymbolInformation where
   craft env@Env {_languageClient = LanguageClient {..}} doc SymbolInformation {..} = do
@@ -167,5 +167,5 @@ instance Craftable SymbolInformation where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        entry <- decorate entry
-        pure [entry]
+        entries <- decorate entry
+        pure entries

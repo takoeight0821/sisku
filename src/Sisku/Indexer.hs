@@ -15,7 +15,7 @@ data LanguageClient = LanguageClient
   { getDocumentSymbols :: TextDocumentIdentifier -> Session (Either [DocumentSymbol] [SymbolInformation]),
     getHover :: TextDocumentIdentifier -> Position -> Session (Maybe Hover),
     getDefinitions :: TextDocumentIdentifier -> Position -> Session ([Location] |? [LocationLink]),
-    decorate :: Entry -> Session Entry
+    decorate :: Entry -> Session [Entry]
   }
 
 defaultLanguageClient :: LanguageClient
@@ -24,7 +24,7 @@ defaultLanguageClient =
     { getDocumentSymbols = Lsp.getDocumentSymbols,
       getHover = Lsp.getHover,
       getDefinitions = Lsp.getDefinitions,
-      decorate = pure
+      decorate = \x -> pure [x]
     }
 
 onGetDocumentSymbols ::
@@ -64,5 +64,5 @@ onGetDefinitions ::
   LanguageClient
 onGetDefinitions f lc = lc {getDefinitions = f (getDefinitions lc)}
 
-onDecorate :: ((Entry -> Session Entry) -> Entry -> Session Entry) -> LanguageClient -> LanguageClient
+onDecorate :: ((Entry -> Session [Entry]) -> Entry -> Session [Entry]) -> LanguageClient -> LanguageClient
 onDecorate f lc = lc {decorate = f (decorate lc)}
