@@ -24,7 +24,9 @@ cmd :: Options -> IO ()
 cmd Options {..} = do
   config <- loadConfig configFilePath
   runSiskuApp config do
-    let ExhaustiveIndexer indexer = build (defaultLanguageClient & filterHaskell & extractCodeBlock)
+    -- 最初にfilterHaskellが適用され、そのあとextractCodeBlockが適用される
+    -- ここでは関数合成をしている！適用順は見た目と逆！
+    let ExhaustiveIndexer indexer = build (defaultLanguageClient & extractCodeBlock & filterHaskell)
     hovercraft <- indexer
     when debugMode $
       print hovercraft
