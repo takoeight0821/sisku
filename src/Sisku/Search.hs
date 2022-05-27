@@ -34,7 +34,7 @@ search placeholderText entries query =
         { hit = entry,
           score =
             view signatureToken entry
-              & map (levenshtein (\a b -> if a == b then 0 else 1) ?? tokenize placeholderText query)
+              & map (levenshtein tokenDiff ?? tokenize placeholderText query)
               & (fromRational infinity :)
               & minimum
         }
