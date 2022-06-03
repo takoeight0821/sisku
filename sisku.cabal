@@ -100,15 +100,19 @@ library
     , lens
     , lsp-test
     , lsp-types
+    , mod
     , optparse-applicative
     , parsec
     , pretty
     , relude >=1.0
+    , scientific
+    , serialise
     , servant
     , servant-server
     , text
     , unicode-data
     , unliftio
+    , vector
     , wai-extra
     , wai-logger
     , warp
@@ -176,16 +180,20 @@ executable sisku
     , lens
     , lsp-test
     , lsp-types
+    , mod
     , optparse-applicative
     , parsec
     , pretty
     , relude >=1.0
+    , scientific
+    , serialise
     , servant
     , servant-server
     , sisku
     , text
     , unicode-data
     , unliftio
+    , vector
     , wai-extra
     , wai-logger
     , warp
@@ -254,16 +262,20 @@ executable test-server
     , lsp
     , lsp-test
     , lsp-types
+    , mod
     , optparse-applicative
     , parsec
     , pretty
     , relude >=1.0
+    , scientific
+    , serialise
     , servant
     , servant-server
     , sisku
     , text
     , unicode-data
     , unliftio
+    , vector
     , wai-extra
     , wai-logger
     , warp
@@ -333,16 +345,20 @@ test-suite sisku-test
     , lens
     , lsp-test
     , lsp-types
+    , mod
     , optparse-applicative
     , parsec
     , pretty
     , relude >=1.0
+    , scientific
+    , serialise
     , servant
     , servant-server
     , sisku
     , text
     , unicode-data
     , unliftio
+    , vector
     , wai-extra
     , wai-logger
     , warp

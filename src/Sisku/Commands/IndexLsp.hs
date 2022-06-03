@@ -1,7 +1,8 @@
 module Sisku.Commands.IndexLsp (cmd, Options (..), parser) where
 
+import Codec.Serialise (serialise)
 import Control.Lens ((^.))
-import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Lazy as BSL
 import Options.Applicative
 import Relude
 import Sisku.App
@@ -52,6 +53,6 @@ writeHovercraft Nothing hc = do
   dataHome <- liftIO getDataHome
   liftIO $ createDirectoryIfMissing True dataHome
   config <- getConfig
-  let file = dataHome </> (toString (config ^. projectId) <> ".json")
-  liftIO $ Aeson.encodeFile file hc
-writeHovercraft (Just file) hc = liftIO $ Aeson.encodeFile file hc
+  let file = dataHome </> (toString (config ^. projectId) <> ".cbor")
+  liftIO $ BSL.writeFile file (serialise hc)
+writeHovercraft (Just file) hc = liftIO $ BSL.writeFile file (serialise hc)

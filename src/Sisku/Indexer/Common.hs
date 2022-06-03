@@ -130,7 +130,6 @@ instance Craftable DocumentSymbol where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
-                  _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
         entries <- decorate entry
@@ -143,7 +142,6 @@ instance Craftable DocumentSymbol where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
-                  _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
         entries <- decorate entry
@@ -164,7 +162,6 @@ instance Craftable SymbolInformation where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
-                  _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
         entries <- decorate entry

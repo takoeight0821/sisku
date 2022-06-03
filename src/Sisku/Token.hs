@@ -1,5 +1,6 @@
 module Sisku.Token where
 
+import Codec.Serialise
 import Data.Aeson
 import qualified Data.Text as Text
 import Relude
@@ -20,6 +21,8 @@ instance ToJSON Token where
 
 instance FromJSON Token where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+instance Serialise Token
 
 tokenize :: Text -> Text -> [Token]
 tokenize placeholder input = case parse

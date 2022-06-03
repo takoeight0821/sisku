@@ -2,9 +2,10 @@
 
 module Sisku.Server (app, getAllHovercrafts, toEntries) where
 
+import Codec.Serialise (deserialise)
 import Control.Lens (view, (^.))
 import Data.Aeson (ToJSON)
-import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
 import Network.Wai.Middleware.Rewrite (rewriteRoot)
 import Relude
@@ -58,7 +59,7 @@ getAllHovercrafts = do
   pure $ Map.fromList hovercrafts
   where
     loadHovercraft dir file = do
-      contents <- liftIO $ Aeson.decodeFileStrict (dir </> file)
+      contents <- liftIO $ deserialise <$> BSL.readFile (dir </> file)
       pure $ fmap (toText $ takeBaseName file,) contents
 
 app :: FilePath -> Map Text Hovercraft -> Application

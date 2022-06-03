@@ -1,21 +1,22 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Sisku.Hovercraft where
 
+import Codec.Serialise
 import Control.Lens ((^.))
 import Control.Lens.TH
-import Data.Aeson
+import Data.Aeson hiding (Encoding, decode, encode)
+import qualified Data.Mod.Word
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens
 import Relude
 import Sisku.Config (HasProjectId (..))
--- import `Pretty Hover`
 import Sisku.Lsp ()
 import Sisku.Token
 import Text.PrettyPrint.HughesPJClass (Pretty (..))
-import qualified Text.PrettyPrint.HughesPJClass as Pretty
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
   deriving stock (Eq, Show, Generic)
@@ -41,6 +42,8 @@ instance ToJSON Definition where
 instance FromJSON Definition where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
 
+instance Serialise Definition
+
 -- | Hover document and definition information
 data Entry = Entry
   { _document :: TextDocumentIdentifier,
@@ -48,7 +51,6 @@ data Entry = Entry
     _hover :: Hover,
     _definitions :: [Definition],
     _signatureToken :: [[Token]],
-    _otherValues :: [Value],
     _rootPath :: FilePath
   }
   deriving stock (Eq, Show, Generic)
@@ -63,6 +65,48 @@ instance FromJSON Entry where
 instance Pretty Entry where
   pPrint Entry {..} = pPrint _hover
 
+instance Serialise TextDocumentIdentifier
+
+deriving stock instance Generic TextDocumentIdentifier
+
+instance Serialise Uri
+
+instance Serialise Hover
+
+deriving stock instance Generic Hover
+
+instance Serialise HoverContents
+
+deriving stock instance Generic HoverContents
+
+instance Serialise a => Serialise (List a)
+
+instance Serialise MarkupContent
+
+deriving stock instance Generic MarkupContent
+
+instance Serialise MarkedString
+
+deriving stock instance Generic MarkedString
+
+instance Serialise LanguageString
+
+deriving stock instance Generic LanguageString
+
+instance Serialise MarkupKind
+
+deriving stock instance Generic MarkupKind
+
+instance Serialise Range
+
+instance Serialise Position
+
+instance Serialise UInt
+
+instance Serialise (Data.Mod.Word.Mod 2147483648)
+
+instance Serialise Entry
+
 makeFieldsNoPrefix ''Entry
 
 newtype Page = Page {_entries :: [Entry]}
@@ -74,6 +118,8 @@ instance ToJSON Page where
 
 instance FromJSON Page where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+instance Serialise Page
 
 makeFieldsNoPrefix ''Page
 
@@ -90,5 +136,7 @@ instance ToJSON Hovercraft where
 
 instance FromJSON Hovercraft where
   parseJSON = genericParseJSON defaultOptions {fieldLabelModifier = drop 1}
+
+instance Serialise Hovercraft
 
 makeFieldsNoPrefix ''Hovercraft
