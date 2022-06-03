@@ -56,12 +56,11 @@ buildHovercraft env = do
   let config = defaultConfig
   hovercrafts <-
     liftIO $
-      runSessionWithConfig config (env ^. command) (fullCaps & workspace . _Just . semanticTokens .~ Nothing) (env ^. rootPath) $ do
-        fileList <- for (env ^. sourceFiles) $ \file -> do
+      runSessionWithConfig config (env ^. command) (fullCaps & workspace . _Just . semanticTokens .~ Nothing) (env ^. rootPath) do
+        for (env ^. sourceFiles) $ \file -> do
           doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
           putTextLn $ toText $ "Opened " <> file
-          pure (file, doc)
-        for fileList $ uncurry seekFile
+          seekFile file doc
   let hovercrafts' = hashNubOn (view (hover . to Lsp.hoverContents)) $ concat hovercrafts
   let hovercrafts'' = groupOn (view document) hovercrafts'
   pure $ Hovercraft (env ^. projectId) (map Page hovercrafts'')
@@ -71,9 +70,8 @@ buildHovercraft env = do
       putTextLn $ toText $ "Seeking file " <> file
       positions <- getAllPositions doc
       entries <- craft env doc positions
-      let page = hashNubOn (view (hover . to Lsp.hoverContents)) entries
       closeDoc doc
-      pure page
+      pure entries
 
 getAllPositions :: MonadIO m => TextDocumentIdentifier -> m [Position]
 getAllPositions doc = do
@@ -139,5 +137,4 @@ instance Craftable Position where
                   _otherValues = [],
                   _rootPath = env ^. rootPath
                 }
-        entries <- decorate entry
-        pure entries
+        decorate entry
