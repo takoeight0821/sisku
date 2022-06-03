@@ -9,7 +9,7 @@ import Sisku.App
 import Sisku.Config
 import Sisku.Hovercraft
 import Sisku.Indexer
-import Sisku.Indexer.Exhaustive
+import Sisku.Indexer.Common
 import Sisku.Indexer.ExtractCodeBlock
 import Sisku.Indexer.FilterHaskell (filterHaskell)
 import System.FilePath ((</>))
@@ -27,7 +27,7 @@ cmd Options {..} = do
   runSiskuApp config do
     -- 最初にfilterHaskellが適用され、そのあとextractCodeBlockが適用される
     -- ここでは関数合成をしている！適用順は見た目と逆！
-    let ExhaustiveIndexer indexer = build (defaultLanguageClient & extractCodeBlock & filterHaskell)
+    let CommonIndexer indexer = build (defaultLanguageClient & extractCodeBlock & filterHaskell)
     hovercraft <- indexer
     when debugMode $
       print hovercraft
