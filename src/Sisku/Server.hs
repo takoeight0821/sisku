@@ -2,9 +2,10 @@
 
 module Sisku.Server (app, getAllHovercrafts, toEntries) where
 
+import Codec.Serialise (deserialise)
 import Control.Lens (view, (^.))
 import Data.Aeson (ToJSON)
-import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
 import Network.Wai.Middleware.Rewrite (rewriteRoot)
 import Relude
@@ -14,7 +15,7 @@ import Sisku.Config (HasProjectId (projectId))
 import Sisku.Hovercraft
 import Sisku.Search (SearchResult (SearchResult))
 import qualified Sisku.Search as Search
-import System.FilePath (takeBaseName, (</>))
+import System.FilePath (isExtensionOf, takeBaseName, (</>))
 import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirectory)
 
 type API =
@@ -53,13 +54,14 @@ searchTokens es mplaceholder projectIds (Just x) = do
 getAllHovercrafts :: MonadIO m => m (Map Text Hovercraft)
 getAllHovercrafts = do
   dataDir <- getXdgDirectory XdgData "sisku/hovercraft"
-  files <- listDirectory dataDir
-  hovercrafts <- catMaybes <$> traverse (loadHovercraft dataDir) files
+  files <- filter (isExtensionOf "cbor") <$> listDirectory dataDir
+  hovercrafts <- traverse (loadHovercraft dataDir) files
   pure $ Map.fromList hovercrafts
   where
     loadHovercraft dir file = do
-      contents <- liftIO $ Aeson.decodeFileStrict (dir </> file)
-      pure $ fmap (toText $ takeBaseName file,) contents
+      traceM (dir </> file)
+      contents <- liftIO $ deserialise <$> BSL.readFile (dir </> file)
+      pure (toText $ takeBaseName file, contents :: Hovercraft)
 
 app :: FilePath -> Map Text Hovercraft -> Application
 app staticFilePath hovercrafts =

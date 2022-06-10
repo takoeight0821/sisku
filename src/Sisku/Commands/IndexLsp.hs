@@ -1,14 +1,15 @@
 module Sisku.Commands.IndexLsp (cmd, Options (..), parser) where
 
+import Codec.Serialise (serialise)
 import Control.Lens ((^.))
-import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Lazy as BSL
 import Options.Applicative
 import Relude
 import Sisku.App
 import Sisku.Config
 import Sisku.Hovercraft
 import Sisku.Indexer
-import Sisku.Indexer.Exhaustive
+import Sisku.Indexer.Common
 import Sisku.Indexer.ExtractCodeBlock
 import Sisku.Indexer.FilterHaskell (filterHaskell)
 import System.FilePath ((</>))
@@ -26,7 +27,7 @@ cmd Options {..} = do
   runSiskuApp config do
     -- 最初にfilterHaskellが適用され、そのあとextractCodeBlockが適用される
     -- ここでは関数合成をしている！適用順は見た目と逆！
-    let ExhaustiveIndexer indexer = build (defaultLanguageClient & extractCodeBlock & filterHaskell)
+    let CommonIndexer indexer = build (defaultLanguageClient & extractCodeBlock & filterHaskell)
     hovercraft <- indexer
     when debugMode $
       print hovercraft
@@ -52,6 +53,6 @@ writeHovercraft Nothing hc = do
   dataHome <- liftIO getDataHome
   liftIO $ createDirectoryIfMissing True dataHome
   config <- getConfig
-  let file = dataHome </> (toString (config ^. projectId) <> ".json")
-  liftIO $ Aeson.encodeFile file hc
-writeHovercraft (Just file) hc = liftIO $ Aeson.encodeFile file hc
+  let file = dataHome </> (toString (config ^. projectId) <> ".cbor")
+  liftIO $ BSL.writeFile file (serialise hc)
+writeHovercraft (Just file) hc = liftIO $ BSL.writeFile file (serialise hc)

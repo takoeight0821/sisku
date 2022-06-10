@@ -30,6 +30,8 @@ dependencies:
   - lens
   - lsp-test
   - lsp-types
+  - mod
+  - vector
   - optparse-applicative
   - parsec
   - pretty
@@ -43,6 +45,8 @@ dependencies:
   - wai-logger
   - warp
   - witherable
+  - serialise
+  - scientific
 
 ghc-options:
   - -Wall
