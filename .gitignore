@@ -76,3 +76,5 @@ data/
 tmp/
 
 .vim/
+
+*.cbor
