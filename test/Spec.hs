@@ -2,9 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
+import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.Lens (view, (^.))
-import qualified Data.Aeson as Aeson
-import Data.Maybe (fromJust)
+import qualified Data.ByteString.Lazy as BSL
+import Data.Either.Extra (fromRight')
 import Language.LSP.Types
 import Relude
 import Sisku.Commands.IndexLsp (Options (Options, configFilePath, outputFilePath))
@@ -22,11 +23,11 @@ main = do
   _ <- initializeTestHLS
   hspec $
     describe "index-lsp" $ do
-      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-server/hello.test.json"
-      it "hello.test" $ hovercraft `shouldBe` Just (helloTestHovercraft rootPathTestServer uriTestServer)
-      hovercraft <- runIO $ Aeson.decodeFileStrict "test/testcases/test-haskell-language-server/test-haskell-language-server.json"
-      it "haskell-language-server" $ isJust (hovercraft :: Maybe Hovercraft) `shouldBe` True
-      hovercraft <- pure $ fromJust hovercraft
+      hovercraft <- runIO $ deserialiseOrFail <$> BSL.readFile "test/testcases/test-server/hello.test.cbor"
+      it "hello.test" $ hovercraft `shouldBe` Right (helloTestHovercraft rootPathTestServer uriTestServer)
+      hovercraft <- runIO $ deserialiseOrFail <$> BSL.readFile "test/testcases/test-haskell-language-server/test-haskell-language-server.cbor"
+      it "haskell-language-server" $ isRight (hovercraft :: Either DeserialiseFailure Hovercraft) `shouldBe` True
+      hovercraft <- pure $ fromRight' hovercraft
       entries <- pure $ concatMap (view entries) $ hovercraft ^. pages
       it "search" $ (search "_" entries "IO" /= []) `shouldBe` True
 
@@ -37,7 +38,7 @@ initializeTestHLS = do
   let testPath = currentDirectory </> "test/testcases/test-haskell-language-server"
   setCurrentDirectory testPath
   -- Generate a hovercraft file for test-haskell-language-server
-  let hovercraftFilePath = testPath </> "test-haskell-language-server.json"
+  let hovercraftFilePath = testPath </> "test-haskell-language-server.cbor"
   IndexLsp.cmd
     Options
       { configFilePath = "sisku_config.json",
@@ -58,7 +59,7 @@ initializeTestServer = do
   IndexLsp.cmd
     Options
       { configFilePath = "sisku_config.json",
-        outputFilePath = Just $ testcase <> ".json",
+        outputFilePath = Just $ testcase <> ".cbor",
         debugMode = False
       }
   let rootPath = takeDirectory testcase
@@ -90,12 +91,12 @@ helloTestHovercraft rootPath uri =
                                   { _start =
                                       Position
                                         { _line = 0,
-                                          _character = 0
+                                          _character = 1
                                         },
                                     _end =
                                       Position
                                         { _line = 0,
-                                          _character = 0
+                                          _character = 1
                                         }
                                   }
                           },
@@ -118,7 +119,6 @@ helloTestHovercraft rootPath uri =
                             }
                         ],
                       _signatureToken = [[Ident {_identifier = "Hello"}, Ident {_identifier = "world"}]],
-                      _otherValues = [],
                       _rootPath = rootPath
                     }
                 ]
