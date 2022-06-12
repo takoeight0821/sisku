@@ -15,7 +15,7 @@ Siskuは次の３つのコンポーネントからなる。
 
 ## Hovercraft
 Hovercraftとは、`sisiku index-lsp` が生成するデータベースファイル（JSON）だ。
-フォーマットはまだ未確定だが、現在のmainブランチのHEAD[daf1cc3](https://github.com/takoeight0821/sisku/commit/daf1cc3b7d1c67cb637fbd1466bac0315811e670)
+フォーマットはまだ未確定だが、執筆時点のmainブランチのHEAD[daf1cc3](https://github.com/takoeight0821/sisku/commit/daf1cc3b7d1c67cb637fbd1466bac0315811e670)
 では、以下のフォーマットが使用されている。
 
 [sisku/Hovercraft\.hs at daf1cc3](https://github.com/takoeight0821/sisku/blob/daf1cc3b7d1c67cb637fbd1466bac0315811e670/src/Sisku/Hovercraft.hs)より抜粋
