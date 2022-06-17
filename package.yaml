@@ -33,7 +33,7 @@ dependencies:
   - mod
   - vector
   - optparse-applicative
-  - parsec
+  - megaparsec
   - pretty
   - relude >= 1.0
   - servant

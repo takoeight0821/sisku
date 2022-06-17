@@ -4,8 +4,8 @@ import Codec.Serialise
 import Data.Aeson
 import qualified Data.Text as Text
 import Relude
-import Text.Parsec (anyChar, eof, manyTill, notFollowedBy, parse, satisfy, spaces, string, try)
-import Text.Parsec.Text (Parser)
+import Text.Megaparsec (MonadParsec, anySingle, eof, manyTill, notFollowedBy, parse, satisfy, skipMany, try)
+import Text.Megaparsec.Char (space, string)
 import Unicode.Char (isPunctuation, isSymbol, isXIDContinue, isXIDStart)
 
 data Token
@@ -27,11 +27,11 @@ instance Serialise Token
 tokenize :: Text -> Text -> [Token]
 tokenize placeholder input = case parse
   ( do
-      spaces
+      space
       manyTill
         ( do
             x <- try (pPlaceholder placeholder) <|> pIdent <|> pSymbol <|> pOtherChar
-            spaces
+            space
             pure x
         )
         eof
@@ -41,23 +41,23 @@ tokenize placeholder input = case parse
   Left err -> error $ show err
   Right x -> x
 
-pPlaceholder :: Text -> Parser Token
+pPlaceholder :: MonadParsec Void Text m => Text -> m Token
 pPlaceholder placeholderText = do
-  _ <- string (toString placeholderText)
+  _ <- string placeholderText
   notFollowedBy (pIdent <|> pSymbol)
   pure $ Placeholder placeholderText
 
-pIdent :: Parser Token
+pIdent :: MonadParsec Void Text m => m Token
 pIdent = do
   start <- satisfy isXIDStart
   continue <- many (satisfy isXIDContinue)
   pure $ Ident (fromString $ start : continue)
 
-pSymbol :: Parser Token
+pSymbol :: MonadParsec Void Text m => m Token
 pSymbol = do
   (satisfy isPunctuation >>= \x -> pure (Symbol (Text.singleton x)))
     <|> (some (satisfy isSymbol) >>= \x -> pure (Symbol (fromString x)))
 
-pOtherChar :: Parser Token
+pOtherChar :: MonadParsec Void Text m => m Token
 pOtherChar = do
-  OtherChar <$> anyChar
+  OtherChar <$> anySingle
