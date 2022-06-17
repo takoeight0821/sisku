@@ -1,6 +1,7 @@
 module Sisku.Tree.Parser where
 
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Set as Set
 import qualified Data.String as String
 import Relude
 import Sisku.Token as Sisku
@@ -76,3 +77,16 @@ pxy :: Proxy TokenStream
 pxy = Proxy
 
 type Parser = Parsec Void TokenStream
+
+-- | Parse an `Ident`
+pIdent :: Parser Sisku.Token
+pIdent = token test Set.empty <?> "ident"
+  where
+    test (WithPos _ _ _ (Ident x)) = Just (Ident x)
+    test _ = Nothing
+
+pSymbol :: Text -> Parser Sisku.Token
+pSymbol sym = token test Set.empty <?> "symbol"
+  where
+    test (WithPos _ _ _ (Symbol x)) | x == sym = Just (Symbol x)
+    test _ = Nothing

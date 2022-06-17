@@ -50,6 +50,7 @@ instance Serialise Definition
 data Entry = Entry
   { _document :: TextDocumentIdentifier,
     _projectId :: Text,
+    _language :: Text,
     _hover :: Hover,
     _definitions :: [Definition],
     _signatureToken :: [(Text, [WithPos Token])],

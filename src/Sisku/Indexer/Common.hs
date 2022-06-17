@@ -128,6 +128,7 @@ instance Craftable DocumentSymbol where
               Entry
                 { _document = doc,
                   _projectId = env ^. projectId,
+                  _language = env ^. language,
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
@@ -140,6 +141,7 @@ instance Craftable DocumentSymbol where
               Entry
                 { _document = doc,
                   _projectId = env ^. projectId,
+                  _language = env ^. language,
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
@@ -161,6 +163,7 @@ instance Craftable SymbolInformation where
               Entry
                 { _document = doc,
                   _projectId = env ^. projectId,
+                  _language = env ^. language,
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],

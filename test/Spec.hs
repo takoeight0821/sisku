@@ -78,6 +78,7 @@ helloTestHovercraft rootPath uri =
                 [ Entry
                     { _document = TextDocumentIdentifier {_uri = uri},
                       _projectId = "com.github.takoeight0821.sisku.test",
+                      _language = "test",
                       _hover =
                         Hover
                           { _contents =
