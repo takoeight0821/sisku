@@ -50,7 +50,7 @@ data Entry = Entry
     _projectId :: Text,
     _hover :: Hover,
     _definitions :: [Definition],
-    _signatureToken :: [[Token]],
+    _signatureToken :: [[WithPos Token]],
     _rootPath :: FilePath
   }
   deriving stock (Eq, Show, Generic)
