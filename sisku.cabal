@@ -41,6 +41,7 @@ library
       Sisku.Search
       Sisku.Server
       Sisku.Token
+      Sisku.Tree.Type
   other-modules:
       Paths_sisku
   hs-source-dirs:
