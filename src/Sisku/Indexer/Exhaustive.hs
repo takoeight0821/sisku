@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Sisku.Indexer.Exhaustive (ExhaustiveIndexer (..)) where
 
@@ -134,6 +135,7 @@ instance Craftable Position where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
+                  _typeTree = [],
                   _rootPath = env ^. rootPath
                 }
         decorate entry

@@ -131,10 +131,10 @@ instance Craftable DocumentSymbol where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
+                  _typeTree = [],
                   _rootPath = env ^. rootPath
                 }
-        entries <- decorate entry
-        pure entries
+        decorate entry
       (Just hover, Just (List cs)) -> do
         let entry =
               Entry
@@ -143,6 +143,7 @@ instance Craftable DocumentSymbol where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
+                  _typeTree = [],
                   _rootPath = env ^. rootPath
                 }
         entries <- decorate entry
@@ -163,7 +164,7 @@ instance Craftable SymbolInformation where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
+                  _typeTree = [],
                   _rootPath = env ^. rootPath
                 }
-        entries <- decorate entry
-        pure entries
+        decorate entry

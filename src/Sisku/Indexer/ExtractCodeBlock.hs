@@ -17,7 +17,7 @@ extractCodeBlock = onDecorate $ \super Entry {..} -> do
   case parseAndExtract contentsLines of
     [] -> super Entry {..}
     sigTexts -> do
-      let _signatureToken = map (tokenize "_") sigTexts
+      let _signatureToken = map (\sigText -> (sigText, tokenize "_" sigText)) sigTexts
       super Entry {..}
 
 parseAndExtract :: [Text] -> [Text]

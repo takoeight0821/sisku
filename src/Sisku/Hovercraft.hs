@@ -17,6 +17,7 @@ import Relude
 import Sisku.Config (HasProjectId (..))
 import Sisku.Lsp ()
 import Sisku.Token
+import Sisku.Tree.Type (Tree)
 import Text.PrettyPrint.HughesPJClass (Pretty (..))
 
 data Definition = Definition {_uri :: Uri, _range :: Range}
@@ -51,7 +52,8 @@ data Entry = Entry
     _projectId :: Text,
     _hover :: Hover,
     _definitions :: [Definition],
-    _signatureToken :: [[WithPos Token]],
+    _signatureToken :: [(Text, [WithPos Token])],
+    _typeTree :: [Tree],
     _rootPath :: FilePath
   }
   deriving stock (Eq, Show, Generic)
