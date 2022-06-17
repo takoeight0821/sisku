@@ -16,6 +16,7 @@ import Sisku.Token
 import System.Directory.Extra (getCurrentDirectory, makeAbsolute, setCurrentDirectory)
 import System.FilePath
 import Test.Hspec
+import Text.Megaparsec (SourcePos (..), mkPos)
 
 main :: IO ()
 main = do
@@ -118,7 +119,11 @@ helloTestHovercraft rootPath uri =
                                   }
                             }
                         ],
-                      _signatureToken = [[Ident {_identifier = "Hello"}, Ident {_identifier = "world"}]],
+                      _signatureToken =
+                        [ [ WithPos (SourcePos "" (mkPos 1) (mkPos 1)) (SourcePos "" (mkPos 1) (mkPos 6)) 5 Ident {_identifier = "Hello"},
+                            WithPos (SourcePos "" (mkPos 1) (mkPos 7)) (SourcePos "" (mkPos 1) (mkPos 12)) 5 Ident {_identifier = "world"}
+                          ]
+                        ],
                       _rootPath = rootPath
                     }
                 ]
