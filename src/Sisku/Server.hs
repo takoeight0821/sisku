@@ -59,7 +59,6 @@ getAllHovercrafts = do
   pure $ Map.fromList hovercrafts
   where
     loadHovercraft dir file = do
-      traceM (dir </> file)
       contents <- liftIO $ deserialise <$> BSL.readFile (dir </> file)
       pure (toText $ takeBaseName file, contents :: Hovercraft)
 
