@@ -120,8 +120,8 @@ helloTestHovercraft rootPath uri =
                             }
                         ],
                       _signatureToken =
-                        [ [ WithPos (SourcePos "" (mkPos 1) (mkPos 1)) (SourcePos "" (mkPos 1) (mkPos 6)) 5 Ident {_identifier = "Hello"},
-                            WithPos (SourcePos "" (mkPos 1) (mkPos 7)) (SourcePos "" (mkPos 1) (mkPos 12)) 5 Ident {_identifier = "world"}
+                        [ [ WithPos (SourcePos "" (mkPos 1) (mkPos 1)) (SourcePos "" (mkPos 1) (mkPos 7)) 6 Ident {_identifier = "Hello"},
+                            WithPos (SourcePos "" (mkPos 1) (mkPos 7)) (SourcePos "" (mkPos 2) (mkPos 1)) 6 Ident {_identifier = "world"}
                           ]
                         ],
                       _rootPath = rootPath

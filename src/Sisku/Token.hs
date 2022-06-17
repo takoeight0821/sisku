@@ -6,7 +6,7 @@ import Codec.Serialise
 import Data.Aeson
 import qualified Data.Text as Text
 import Relude
-import Text.Megaparsec (MonadParsec, Pos, SourcePos (sourceColumn), anySingle, eof, getSourcePos, manyTill, notFollowedBy, parse, satisfy, try, unPos)
+import Text.Megaparsec (MonadParsec, Pos, SourcePos, anySingle, eof, getOffset, getSourcePos, manyTill, notFollowedBy, parse, satisfy, try)
 import Text.Megaparsec.Char (space, string)
 import Unicode.Char (isPunctuation, isSymbol, isXIDContinue, isXIDStart)
 
@@ -60,10 +60,7 @@ tokenize placeholder input = case parse
   ( do
       space
       manyTill
-        ( do
-            x <- try (pPlaceholder placeholder) <|> pIdent <|> pSymbol <|> pOtherChar
-            space
-            pure x
+        ( try (pPlaceholder placeholder) <|> pIdent <|> pSymbol <|> pOtherChar
         )
         eof
   )
@@ -74,35 +71,44 @@ tokenize placeholder input = case parse
 
 pPlaceholder :: MonadParsec Void Text m => Text -> m (WithPos Token)
 pPlaceholder placeholderText = do
-  start <- getSourcePos
+  startPos <- getSourcePos
+  startOffset <- getOffset
   _ <- string placeholderText
   notFollowedBy (pIdent <|> pSymbol)
-  end <- getSourcePos
-  pure $ at start end $ Placeholder placeholderText
+  space
+  endPos <- getSourcePos
+  endOffset <- getOffset
+  pure $ WithPos startPos endPos (endOffset - startOffset) $ Placeholder placeholderText
 
 pIdent :: MonadParsec Void Text m => m (WithPos Token)
 pIdent = do
   startPos <- getSourcePos
+  startOffset <- getOffset
   start <- satisfy isXIDStart
   continue <- many (satisfy isXIDContinue)
+  space
+  endOffset <- getOffset
   endPos <- getSourcePos
-  pure $ at startPos endPos $ Ident (fromString $ start : continue)
+  pure $ WithPos startPos endPos (endOffset - startOffset) $ Ident (fromString $ start : continue)
 
 pSymbol :: MonadParsec Void Text m => m (WithPos Token)
 pSymbol = do
   startPos <- getSourcePos
+  startOffset <- getOffset
   symbol <-
     (satisfy isPunctuation >>= \x -> pure (Symbol (Text.singleton x)))
       <|> (some (satisfy isSymbol) >>= \x -> pure (Symbol (fromString x)))
+  space
   endPos <- getSourcePos
-  pure $ at startPos endPos symbol
+  endOffset <- getOffset
+  pure $ WithPos startPos endPos (endOffset - startOffset) symbol
 
 pOtherChar :: MonadParsec Void Text m => m (WithPos Token)
 pOtherChar = do
   startPos <- getSourcePos
+  startOffset <- getOffset
   char <- OtherChar <$> anySingle
+  space
   endPos <- getSourcePos
-  pure $ at startPos endPos char
-
-at :: SourcePos -> SourcePos -> Token -> WithPos Token
-at start end = WithPos start end (unPos (sourceColumn end) - unPos (sourceColumn start))
+  endOffset <- getOffset
+  pure $ WithPos startPos endPos (endOffset - startOffset) char
