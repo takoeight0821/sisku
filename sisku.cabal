@@ -37,10 +37,12 @@ library
       Sisku.Indexer.ExtractCodeBlock
       Sisku.Indexer.FilterHaskell
       Sisku.Indexer.MiddlewareExample
+      Sisku.Indexer.ParseTreeHaskell
       Sisku.Lsp
       Sisku.Search
       Sisku.Server
       Sisku.Token
+      Sisku.Tree.Parser
       Sisku.Tree.Type
   other-modules:
       Paths_sisku
@@ -101,9 +103,9 @@ library
     , lens
     , lsp-test
     , lsp-types
+    , megaparsec
     , mod
     , optparse-applicative
-    , parsec
     , pretty
     , relude >=1.0
     , scientific
@@ -181,9 +183,9 @@ executable sisku
     , lens
     , lsp-test
     , lsp-types
+    , megaparsec
     , mod
     , optparse-applicative
-    , parsec
     , pretty
     , relude >=1.0
     , scientific
@@ -263,9 +265,9 @@ executable test-server
     , lsp
     , lsp-test
     , lsp-types
+    , megaparsec
     , mod
     , optparse-applicative
-    , parsec
     , pretty
     , relude >=1.0
     , scientific
@@ -346,9 +348,9 @@ test-suite sisku-test
     , lens
     , lsp-test
     , lsp-types
+    , megaparsec
     , mod
     , optparse-applicative
-    , parsec
     , pretty
     , relude >=1.0
     , scientific
