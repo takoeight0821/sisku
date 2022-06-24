@@ -137,3 +137,11 @@ This is the list of config fields:
 * lspSettingMap.<key>.extensions (type: string[])
 
 		List of source code extensions.
+
+## Comparation
+
+|   | Sisku (current) | Sisku (in future) | Hoogle | Google |
+| - | --------------- | ----------------- | ------ | ------ |
+| Supported Language | Haskell([HLS](https://github.com/haskell/haskell-language-server)), Rust([rust-analyzer](https://rust-analyzer.github.io/)) are tested | ALl language supporting LSP | Haskell | All |
+| Search Algorithm | Edit distance | Signature match & Full-text search | Type match | Full-text search |
+| Extensibility | ✅ (Only language server is required) | ✅ (Language server + some plugin (probably)) | ❌ | ? |
