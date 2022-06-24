@@ -47,6 +47,7 @@ dependencies:
   - witherable
   - serialise
   - scientific
+  - tree-sitter
 
 ghc-options:
   - -Wall

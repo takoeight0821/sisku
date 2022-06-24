@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: tree-sitter-0.9.0.3@sha256:77f7d4055f7089ff617c0c374229f36e425f15241e7be5da7e7d56f91f5e362d,3263
+    pantry-tree:
+      size: 3765
+      sha256: 2925e717545aef889899b558f21e90703bebc45567b5498fabc84fa6136d7232
+  original:
+    hackage: tree-sitter-0.9.0.3@sha256:77f7d4055f7089ff617c0c374229f36e425f15241e7be5da7e7d56f91f5e362d,3263
 snapshots:
 - completed:
     size: 617368
