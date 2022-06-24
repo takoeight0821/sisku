@@ -7,7 +7,7 @@ import Data.Aeson
 import qualified Data.Text as Text
 import Relude
 import Text.Megaparsec (MonadParsec, Pos, SourcePos, anySingle, eof, getOffset, getSourcePos, manyTill, notFollowedBy, parse, satisfy, try)
-import Text.Megaparsec.Char (space, string)
+import Text.Megaparsec.Char (char, space, string)
 import Unicode.Char (isPunctuation, isSymbol, isXIDContinue, isXIDStart)
 
 data Token
@@ -84,7 +84,7 @@ pIdent :: MonadParsec Void Text m => m (WithPos Token)
 pIdent = do
   startPos <- getSourcePos
   startOffset <- getOffset
-  start <- satisfy isXIDStart
+  start <- satisfy isXIDStart <|> char '_'
   continue <- many (satisfy isXIDContinue)
   space
   endOffset <- getOffset
@@ -107,8 +107,8 @@ pOtherChar :: MonadParsec Void Text m => m (WithPos Token)
 pOtherChar = do
   startPos <- getSourcePos
   startOffset <- getOffset
-  char <- OtherChar <$> anySingle
+  otherChar <- OtherChar <$> anySingle
   space
   endPos <- getSourcePos
   endOffset <- getOffset
-  pure $ WithPos startPos endPos (endOffset - startOffset) char
+  pure $ WithPos startPos endPos (endOffset - startOffset) otherChar
