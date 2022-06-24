@@ -48,6 +48,7 @@ dependencies:
   - serialise
   - scientific
   - tree-sitter
+  - tree-sitter-haskell
 
 ghc-options:
   - -Wall

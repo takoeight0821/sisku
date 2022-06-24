@@ -44,6 +44,7 @@ library
       Sisku.Token
       Sisku.Tree.Parser
       Sisku.Tree.Type
+      Sisku.TreeSitter.ParseHaskell
   other-modules:
       Paths_sisku
   hs-source-dirs:
@@ -114,6 +115,7 @@ library
     , servant-server
     , text
     , tree-sitter
+    , tree-sitter-haskell
     , unicode-data
     , unliftio
     , vector
@@ -196,6 +198,7 @@ executable sisku
     , sisku
     , text
     , tree-sitter
+    , tree-sitter-haskell
     , unicode-data
     , unliftio
     , vector
@@ -279,6 +282,7 @@ executable test-server
     , sisku
     , text
     , tree-sitter
+    , tree-sitter-haskell
     , unicode-data
     , unliftio
     , vector
@@ -363,6 +367,7 @@ test-suite sisku-test
     , sisku
     , text
     , tree-sitter
+    , tree-sitter-haskell
     , unicode-data
     , unliftio
     , vector
