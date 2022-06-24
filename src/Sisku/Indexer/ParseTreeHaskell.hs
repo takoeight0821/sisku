@@ -32,4 +32,4 @@ pSignature = do
   _ <- pSymbol ":"
   _ <- pSymbol ":"
   tokens <- some anySingle
-  pure $ Branch [Branch [Leaf (Symbol ":"), Leaf (Symbol ":")], Leaf ident, Branch $ map (Leaf . _value) tokens]
+  pure $ Branch [Leaf (Symbol "::"), Leaf ident, Branch $ map (Leaf . _value) tokens]
