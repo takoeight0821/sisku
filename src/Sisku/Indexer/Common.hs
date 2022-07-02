@@ -8,7 +8,7 @@ import Control.Lens (At (at), over, view, (.~), (^.), _Just)
 import Control.Lens.TH
 import qualified Data.Map as Map
 import Data.Traversable (for)
-import Language.LSP.Test (Session, closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
+import Language.LSP.Test (Session, SessionConfig (messageTimeout), closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
 import Language.LSP.Types (DocumentSymbol (..), List (List), SymbolInformation (..), TextDocumentIdentifier)
 import Language.LSP.Types.Lens (HasCharacter (character), HasCommand (command), HasRange (range), HasSemanticTokens (semanticTokens), HasStart (start), HasWorkspace (workspace))
 import Relude
@@ -51,15 +51,14 @@ instance Indexer CommonIndexer where
 -- | Build a hovercraft using LSP.
 buildHovercraft :: MonadIO m => Env -> m Hovercraft
 buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
-  let config = defaultConfig
+  let config = defaultConfig {messageTimeout = 120}
   hovercrafts <-
     liftIO $
       runSessionWithConfig config (env ^. command) (fullCaps & workspace . _Just . semanticTokens .~ Nothing) (env ^. rootPath) $ do
-        fileList <- for (env ^. sourceFiles) $ \file -> do
+        for (env ^. sourceFiles) $ \file -> do
           doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
           putTextLn $ toText $ "Opened " <> file
-          pure (file, doc)
-        for fileList $ uncurry seekFile
+          seekFile file doc
   pure $ Hovercraft (env ^. projectId) hovercrafts
   where
     seekFile :: FilePath -> TextDocumentIdentifier -> Session Page
