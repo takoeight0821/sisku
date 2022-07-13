@@ -136,7 +136,6 @@ instance Craftable Position where
                   _hover = hover,
                   _definitions = map toDefinition $ Lsp.uncozip definitions,
                   _signatureToken = [],
-                  _typeTree = [],
-                  _rootPath = env ^. rootPath
+                  _typeTree = []
                 }
         decorate entry

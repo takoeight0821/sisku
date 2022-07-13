@@ -54,8 +54,7 @@ data Entry = Entry
     _hover :: Hover,
     _definitions :: [Definition],
     _signatureToken :: [(Text, [WithPos Token])],
-    _typeTree :: [Tree],
-    _rootPath :: FilePath
+    _typeTree :: [Tree]
   }
   deriving stock (Eq, Show, Generic)
 
