@@ -38,6 +38,7 @@ library
       Sisku.Indexer.FilterHaskell
       Sisku.Indexer.MiddlewareExample
       Sisku.Indexer.ParseTreeHaskell
+      Sisku.Indexer.RetryHover
       Sisku.Lsp
       Sisku.Search
       Sisku.Server

@@ -1,8 +1,9 @@
 module Sisku.Search (search, SearchResult (..)) where
 
-import Control.Lens (view)
+import Control.Lens (view, _2)
 import Data.Aeson
 import Data.Foldable (foldl, minimum)
+import qualified Data.List.Extra as List
 import GHC.Real (infinity)
 import Relude
 import qualified Relude.Unsafe as Unsafe
@@ -29,18 +30,23 @@ instance Pretty SearchResult where
 search :: Text -> [Entry] -> Text -> [SearchResult]
 search placeholderText entries query =
   sortOn score $
-    map ?? entries $ \entry ->
+    map ?? partialMatchedEntries $ \(entry, _) ->
       SearchResult
         { hit = entry,
           score =
             view signatureToken entry
               & map
                 ( snd
-                    >>> levenshtein (\a b -> tokenDiff (_value a) (_value b)) ?? tokenize placeholderText query
+                    >>> levenshtein (\a b -> tokenDiff (_value a) (_value b)) ?? tokenizedQuery
                 )
               & (fromRational infinity :)
               & minimum
         }
+  where
+    tokenizedQuery = tokenize placeholderText query
+    entriesWithToken = map (\e -> (e, concatMap (view _2) $ view signatureToken e)) entries
+    partialMatchedEntries = filter (partialMatch tokenizedQuery . view _2) entriesWithToken
+    partialMatch t1 t2 = not $ List.disjointOrd t1 t2
 
 -- from https://rosettacode.org/wiki/Levenshtein_distance#Haskell
 -- TODO: make more readable
