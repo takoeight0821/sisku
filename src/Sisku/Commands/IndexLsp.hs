@@ -11,6 +11,7 @@ import Sisku.Hovercraft
 import Sisku.Indexer
 import Sisku.Indexer.Common
 import Sisku.Indexer.ExtractCodeBlock
+import Sisku.Indexer.FilterEmpty (filterEmpty)
 import Sisku.Indexer.FilterHaskell (filterHaskell)
 import Sisku.Indexer.ParseTreeHaskell (parseTreeHaskell)
 import System.FilePath ((</>))
@@ -28,7 +29,7 @@ cmd Options {..} = do
   runSiskuApp config do
     -- Run filterHaskell first, then extractCodeBlock.
     let CommonIndexer indexer = build $ filterHaskell $ extractCodeBlock $ parseTreeHaskell defaultLanguageClient
-    hovercraft <- indexer
+    hovercraft <- filterEmpty <$> indexer
     when debugMode $
       print hovercraft
     writeHovercraft outputFilePath hovercraft

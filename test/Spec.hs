@@ -127,8 +127,7 @@ helloTestHovercraft rootPath uri =
                             ]
                           )
                         ],
-                      _typeTree = [],
-                      _rootPath = rootPath
+                      _typeTree = []
                     }
                 ]
             }
