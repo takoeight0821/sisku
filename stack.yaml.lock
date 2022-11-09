@@ -3,10 +3,31 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: lsp-1.6.0.0@sha256:2b95e406cc85ffa95406ae8ad7d16b82283a6ca2fcb7ea5308a4ef3e6d6e68e6,4397
+    pantry-tree:
+      sha256: 43a82c501ec3074d888f2bf4960e4b447028c1537abbca4cf65e74944604bf62
+      size: 1044
+  original:
+    hackage: lsp-1.6.0.0@sha256:2b95e406cc85ffa95406ae8ad7d16b82283a6ca2fcb7ea5308a4ef3e6d6e68e6,4397
+- completed:
+    hackage: lsp-test-0.14.1.0@sha256:a535014ed008a6584cd3c59d31435d046aa3d346ce9a36a4f6e006586e29b4a4,4852
+    pantry-tree:
+      sha256: a720cfe18e3575e8d32f7937912340601c2f7e8b2aa9b8cc91346ed531983793
+      size: 1559
+  original:
+    hackage: lsp-test-0.14.1.0@sha256:a535014ed008a6584cd3c59d31435d046aa3d346ce9a36a4f6e006586e29b4a4,4852
+- completed:
+    hackage: co-log-core-0.3.2.0@sha256:9b2699adecee2f072b6c713089e675b592ef23f00a2ff3740bdaf4d87de8d456,3850
+    pantry-tree:
+      sha256: af9c807ce50a126706bd99983ec71c060a489ab2b914de8dbccf756adccc2a43
+      size: 584
+  original:
+    hackage: co-log-core-0.3.2.0@sha256:9b2699adecee2f072b6c713089e675b592ef23f00a2ff3740bdaf4d87de8d456,3850
 snapshots:
 - completed:
-    size: 617368
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/2.yaml
-    sha256: e7e57649a12f6178d1158e4b6f1f1885ed56d210ae6174385271cecc9b1ea974
-  original: lts-19.2
+    sha256: d3c0b7d9145c95a343a1f879f39e4c15f9c9bd34a1231c0aa144c1cc598305f6
+    size: 647779
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/11/8.yaml
+  original: nightly-2022-11-08
