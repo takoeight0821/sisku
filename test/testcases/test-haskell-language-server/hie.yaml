@@ -4,3 +4,10 @@ cradle:
       component: "lib:test-haskell-language-server"
     - path: "app"
       component: "test-haskell-language-server:exe:test-haskell-language-server"
+
+# cradle:
+#   stack :
+#     - path: "src"
+#       component: "test-haskell-language-server:lib"
+#     - path: "app"
+#       component: "test-haskell-language-server:exe:test-haskell-language-server"
