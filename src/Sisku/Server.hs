@@ -1,12 +1,11 @@
-{-# LANGUAGE TupleSections #-}
-
 module Sisku.Server (app, getAllHovercrafts, toEntries) where
 
 import Codec.Serialise (deserialise)
 import Control.Lens (view, (^.))
 import Data.Aeson (ToJSON)
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Map as Map
+import Data.ByteString.Lazy qualified as BSL
+import Data.Map qualified as Map
+import Network.Wai.Middleware.Cors (simpleCors)
 import Network.Wai.Middleware.Rewrite (rewriteRoot)
 import Relude
 import Servant (Application, Get, JSON, Raw, Server, serve, serveDirectoryWebApp, type (:<|>) ((:<|>)), type (:>))
@@ -14,7 +13,7 @@ import Servant.API (QueryParam, QueryParams)
 import Sisku.Config (HasProjectId (projectId))
 import Sisku.Hovercraft
 import Sisku.Search (SearchResult (SearchResult))
-import qualified Sisku.Search as Search
+import Sisku.Search qualified as Search
 import System.FilePath (isExtensionOf, takeBaseName, (</>))
 import UnliftIO.Directory (XdgDirectory (XdgData), getXdgDirectory, listDirectory)
 
@@ -64,4 +63,6 @@ getAllHovercrafts = do
 
 app :: FilePath -> Map Text Hovercraft -> Application
 app staticFilePath hovercrafts =
-  rewriteRoot "index.html" $ serve api (server staticFilePath hovercrafts)
+  simpleCors $
+    rewriteRoot "index.html" $
+      serve api (server staticFilePath hovercrafts)

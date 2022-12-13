@@ -49,6 +49,7 @@ dependencies:
   - witherable
   - serialise
   - scientific
+  - wai-cors
 
 ghc-options:
   - -Wall

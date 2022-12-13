@@ -117,6 +117,7 @@ library
     , unicode-data
     , unliftio
     , vector
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -198,6 +199,7 @@ executable sisku
     , unicode-data
     , unliftio
     , vector
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -280,6 +282,7 @@ executable test-server
     , unicode-data
     , unliftio
     , vector
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -363,6 +366,7 @@ test-suite sisku-test
     , unicode-data
     , unliftio
     , vector
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
