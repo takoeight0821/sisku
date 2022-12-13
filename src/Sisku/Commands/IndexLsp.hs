@@ -2,14 +2,14 @@ module Sisku.Commands.IndexLsp (cmd, Options (..), parser) where
 
 import Codec.Serialise (serialise)
 import Control.Lens ((^.))
-import qualified Data.ByteString.Lazy as BSL
+import Data.ByteString.Lazy qualified as BSL
 import Options.Applicative
 import Relude
 import Sisku.App
 import Sisku.Config
 import Sisku.Hovercraft
 import Sisku.Indexer
-import Sisku.Indexer.Common
+import Sisku.Indexer.Exhaustive (ExhaustiveIndexer (ExhaustiveIndexer))
 import Sisku.Indexer.ExtractCodeBlock
 import Sisku.Indexer.FilterEmpty (filterEmpty)
 import Sisku.Indexer.FilterHaskell (filterHaskell)
@@ -28,7 +28,7 @@ cmd Options {..} = do
   config <- loadConfig configFilePath
   runSiskuApp config do
     -- Run filterHaskell first, then extractCodeBlock.
-    let CommonIndexer indexer = build $ filterHaskell $ extractCodeBlock $ parseTreeHaskell defaultLanguageClient
+    let ExhaustiveIndexer indexer = build $ filterHaskell $ extractCodeBlock $ parseTreeHaskell defaultLanguageClient
     hovercraft <- filterEmpty <$> indexer
     when debugMode $
       print hovercraft
