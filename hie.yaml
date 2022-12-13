@@ -1,19 +1,19 @@
 cradle:
-  stack:
-    - path: "./src"
-      component: "sisku:lib"
+  cabal:
+    - path: "src"
+      component: "lib:sisku"
 
-    - path: "./app/Main.hs"
+    - path: "app/Main.hs"
       component: "sisku:exe:sisku"
 
-    - path: "./app/Paths_sisku.hs"
+    - path: "app/Paths_sisku.hs"
       component: "sisku:exe:sisku"
 
-    - path: "./app/test-server/Main.hs"
+    - path: "app/test-server/Main.hs"
       component: "sisku:exe:test-server"
 
-    - path: "./app/test-server/Paths_sisku.hs"
+    - path: "app/test-server/Paths_sisku.hs"
       component: "sisku:exe:test-server"
 
-    - path: "./test"
+    - path: "test"
       component: "sisku:test:sisku-test"

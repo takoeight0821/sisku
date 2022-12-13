@@ -6,7 +6,7 @@ module Sisku.Indexer.Common (CommonIndexer (..)) where
 
 import Control.Lens (At (at), over, view, (.~), (?~), (^.), _Just)
 import Control.Lens.TH
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Data.Traversable (for)
 import Language.LSP.Test (Session, closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
 import Language.LSP.Types (DocumentSymbol (..), List (List), SymbolInformation (..), TextDocumentIdentifier)
@@ -16,7 +16,7 @@ import Sisku.App
 import Sisku.Config (HasExcludePatterns (excludePatterns), HasExtensions (extensions), HasProjectId (..), HasRootUriPatterns (rootUriPatterns), LspSetting)
 import Sisku.Hovercraft
 import Sisku.Indexer
-import qualified Sisku.Lsp as Lsp
+import Sisku.Lsp qualified as Lsp
 import System.Directory.Extra (doesFileExist, getCurrentDirectory, makeAbsolute)
 import System.FilePath (isValid, joinPath, makeRelative, normalise, splitPath, (</>))
 import System.FilePath.Glob (glob)
@@ -53,20 +53,20 @@ buildHovercraft :: MonadIO m => Env -> m Hovercraft
 buildHovercraft env@Env {_languageClient = LanguageClient {..}} = do
   let config = defaultConfig
   hovercrafts <-
-    liftIO $
-      runSessionWithConfig
+    liftIO
+      $ runSessionWithConfig
         config
         (env ^. command)
-        ( fullCaps & workspace . _Just . semanticTokens .~ Nothing
+        ( fullCaps
+            & workspace . _Just . semanticTokens .~ Nothing
             & window . _Just . workDoneProgress ?~ False
-            -- & workspace . _Just . configuration ?~ False
         )
         (env ^. rootPath)
-        $ do
-          for (env ^. sourceFiles) $ \file -> do
-            doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
-            putTextLn $ toText $ "Opened " <> file
-            seekFile file doc
+      $ do
+        for (env ^. sourceFiles) $ \file -> do
+          doc <- openDoc (makeRelative (env ^. rootPath) file) (env ^. language)
+          putTextLn $ toText $ "Opened " <> file
+          seekFile file doc
   pure $ Hovercraft (env ^. projectId) hovercrafts
   where
     seekFile :: FilePath -> TextDocumentIdentifier -> Session Page

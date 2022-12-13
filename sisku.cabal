@@ -121,7 +121,7 @@ library
     , wai-logger
     , warp
     , witherable
-  default-language: Haskell2010
+  default-language: GHC2021
 
 executable sisku
   main-is: Main.hs
@@ -202,7 +202,7 @@ executable sisku
     , wai-logger
     , warp
     , witherable
-  default-language: Haskell2010
+  default-language: GHC2021
 
 executable test-server
   main-is: Main.hs
@@ -284,7 +284,7 @@ executable test-server
     , wai-logger
     , warp
     , witherable
-  default-language: Haskell2010
+  default-language: GHC2021
 
 test-suite sisku-test
   type: exitcode-stdio-1.0
@@ -367,4 +367,4 @@ test-suite sisku-test
     , wai-logger
     , warp
     , witherable
-  default-language: Haskell2010
+  default-language: GHC2021
