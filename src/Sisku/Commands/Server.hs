@@ -17,7 +17,9 @@ cmd Options {..} = do
   isExists <- doesDirectoryExist staticFilePath
   unless isExists $
     error $
-      "Directory " <> show staticFilePath <> " does not exist.\n"
+      "Directory "
+        <> show staticFilePath
+        <> " does not exist.\n"
         <> "Please install sisku-elm.\n"
   hovercrafts <- getAllHovercrafts
   putTextLn $ "Listening on port " <> show port <> "..."

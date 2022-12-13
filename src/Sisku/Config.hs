@@ -4,9 +4,9 @@ module Sisku.Config where
 
 import Control.Lens.TH (makeFieldsNoPrefix)
 import Data.Aeson
-import qualified Data.Aeson.Key as Key
-import qualified Data.Aeson.KeyMap as KeyMap
-import qualified Data.Map as Map
+import Data.Aeson.Key qualified as Key
+import Data.Aeson.KeyMap qualified as KeyMap
+import Data.Map qualified as Map
 import Language.LSP.Types.Lens
 import Relude
 

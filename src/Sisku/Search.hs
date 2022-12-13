@@ -3,14 +3,14 @@ module Sisku.Search (search, SearchResult (..)) where
 import Control.Lens (view, _2)
 import Data.Aeson
 import Data.Foldable (foldl, minimum)
-import qualified Data.List.Extra as List
+import Data.List.Extra qualified as List
 import GHC.Real (infinity)
 import Relude
-import qualified Relude.Unsafe as Unsafe
+import Relude.Unsafe qualified as Unsafe
 import Sisku.Hovercraft hiding (entries)
 import Sisku.Token
 import Text.PrettyPrint.HughesPJClass (Pretty (pPrint))
-import qualified Text.PrettyPrint.HughesPJClass as Pretty
+import Text.PrettyPrint.HughesPJClass qualified as Pretty
 
 data SearchResult = SearchResult
   {hit :: Entry, score :: Double}
@@ -37,7 +37,8 @@ search placeholderText entries query =
             view signatureToken entry
               & map
                 ( snd
-                    >>> levenshtein (\a b -> tokenDiff (_value a) (_value b)) ?? tokenizedQuery
+                    >>> levenshtein (\a b -> tokenDiff (_value a) (_value b))
+                    ?? tokenizedQuery
                 )
               & (fromRational infinity :)
               & minimum

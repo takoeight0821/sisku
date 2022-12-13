@@ -1,7 +1,7 @@
 module Sisku.Indexer.ExtractCodeBlock where
 
 import Control.Lens ((^.))
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Language.LSP.Types
 import Language.LSP.Types.Lens (HasContents (contents), HasValue (value))
 import Relude

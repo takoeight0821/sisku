@@ -1,8 +1,8 @@
 module Sisku.Tree.Parser where
 
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Set as Set
-import qualified Data.String as String
+import Data.List.NonEmpty qualified as NE
+import Data.Set qualified as Set
+import Data.String qualified as String
 import Relude
 import Sisku.Token as Sisku
 import Text.Megaparsec
@@ -26,10 +26,10 @@ instance Stream TokenStream where
     | n <= 0 = Just ([], TokenStream str s)
     | null s = Nothing
     | otherwise =
-      let (x, s') = splitAt n s
-       in case NE.nonEmpty x of
-            Nothing -> Just (x, TokenStream str s')
-            Just nex -> Just (x, TokenStream (drop (tokensLength pxy nex) str) s')
+        let (x, s') = splitAt n s
+         in case NE.nonEmpty x of
+              Nothing -> Just (x, TokenStream str s')
+              Just nex -> Just (x, TokenStream (drop (tokensLength pxy nex) str) s')
   takeWhile_ f (TokenStream str s) =
     let (x, s') = span f s
      in case NE.nonEmpty x of

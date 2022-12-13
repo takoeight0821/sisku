@@ -10,7 +10,7 @@ import Codec.Serialise
 import Control.Lens ((^.))
 import Control.Lens.TH
 import Data.Aeson hiding (Encoding, decode, encode)
-import qualified Data.Mod.Word
+import Data.Mod.Word qualified
 import Language.LSP.Types hiding (line)
 import Language.LSP.Types.Lens
 import Relude

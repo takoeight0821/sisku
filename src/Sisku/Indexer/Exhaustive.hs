@@ -7,8 +7,8 @@ module Sisku.Indexer.Exhaustive (ExhaustiveIndexer (..)) where
 import Control.Lens (At (at), iconcatMap, to, view, (.~), (^.), _Just)
 import Control.Lens.TH
 import Data.List.Extra (groupOn)
-import qualified Data.Map as Map
-import qualified Data.Text as Text
+import Data.Map qualified as Map
+import Data.Text qualified as Text
 import Data.Traversable (for)
 import Language.LSP.Test (Session, closeDoc, defaultConfig, fullCaps, openDoc, runSessionWithConfig)
 import Language.LSP.Types (Position (Position), TextDocumentIdentifier, uriToFilePath)
@@ -18,7 +18,7 @@ import Sisku.App
 import Sisku.Config (HasExcludePatterns (excludePatterns), HasExtensions (extensions), HasProjectId (..), HasRootUriPatterns (rootUriPatterns), LspSetting)
 import Sisku.Hovercraft
 import Sisku.Indexer
-import qualified Sisku.Lsp as Lsp
+import Sisku.Lsp qualified as Lsp
 import System.Directory.Extra (doesFileExist, getCurrentDirectory, makeAbsolute)
 import System.FilePath (isValid, joinPath, makeRelative, normalise, splitPath, (</>))
 import System.FilePath.Glob (glob)

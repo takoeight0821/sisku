@@ -7,7 +7,7 @@ module Sisku.Lsp (getDocumentSymbols, getHover, getDefinitions, uncozip, detectL
 
 import Control.Lens hiding (List, children, (.=), (??))
 import Data.List.Extra (mconcatMap)
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Language.LSP.Test hiding (getDefinitions, getDocumentSymbols, getHover)
 import Language.LSP.Types hiding (Message)
 import Language.LSP.Types.Lens hiding (hover, to)
@@ -19,7 +19,7 @@ import System.FilePath
 import System.FilePath.Glob
 import System.Time.Extra (sleep)
 import Text.PrettyPrint.HughesPJClass (Pretty (..))
-import qualified Text.PrettyPrint.HughesPJClass as Pretty
+import Text.PrettyPrint.HughesPJClass qualified as Pretty
 
 getDocumentSymbols :: TextDocumentIdentifier -> Session (Either [DocumentSymbol] [SymbolInformation])
 getDocumentSymbols doc = do

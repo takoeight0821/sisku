@@ -4,7 +4,7 @@ module Sisku.Token where
 
 import Codec.Serialise
 import Data.Aeson
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Relude
 import Text.Megaparsec (MonadParsec, Pos, SourcePos, anySingle, eof, getOffset, getSourcePos, manyTill, notFollowedBy, parse, satisfy, try)
 import Text.Megaparsec.Char (char, space, string)

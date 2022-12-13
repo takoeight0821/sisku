@@ -5,7 +5,7 @@ import Language.LSP.Test (Session)
 import Language.LSP.Types (DocumentSymbol, Hover, Location, LocationLink, Position, SymbolInformation, TextDocumentIdentifier, type (|?))
 import Relude
 import Sisku.Hovercraft
-import qualified Sisku.Lsp as Lsp
+import Sisku.Lsp qualified as Lsp
 
 class Indexer m where
   -- | Build an index

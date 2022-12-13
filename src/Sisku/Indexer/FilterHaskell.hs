@@ -4,7 +4,7 @@ module Sisku.Indexer.FilterHaskell where
 
 import Control.Lens ((.~), (^.))
 import Control.Monad.Extra (concatMapM)
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Language.LSP.Types (Hover (Hover), HoverContents (HoverContents), MarkupContent (MarkupContent), MarkupKind (MkMarkdown))
 import Language.LSP.Types.Lens (HasHover (hover), HasRange (range), contents)
 import Relude

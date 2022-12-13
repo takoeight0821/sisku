@@ -4,7 +4,7 @@ module Sisku.Commands.Search (parser) where
 
 import Options.Applicative
 import Relude
-import qualified Sisku.Search as Search
+import Sisku.Search qualified as Search
 import Sisku.Server (getAllHovercrafts, toEntries)
 import Text.PrettyPrint.HughesPJClass (pPrint)
 
